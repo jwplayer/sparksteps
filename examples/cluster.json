@@ -1,5 +1,5 @@
 {
-  "Name": "Test StepSparks",
+  "Name": "Test SparkSteps",
   "ReleaseLabel": "emr-4.7.0",
   "Instances": {
     "MasterInstanceType": "m4.large",

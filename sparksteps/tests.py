@@ -24,7 +24,7 @@ def test_emr_config():
                       'JobFlowRole': 'EMR_EC2_DefaultRole',
                       'ServiceRole': 'EMR_DefaultRole',
                       'Applications': [{'Name': 'Spark'}],
-                      'Name': 'Test StepSparks', 'VisibleToAllUsers': True,
+                      'Name': 'Test SparkSteps', 'VisibleToAllUsers': True,
                       'Tags': [{'Key': 'Application', 'Value': 'SparkSteps'}],
                       'Instances': {'KeepJobFlowAliveWhenNoSteps': False,
                                     'SlaveInstanceType': 'm4.2xlarge',
