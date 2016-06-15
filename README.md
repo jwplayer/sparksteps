@@ -6,8 +6,6 @@ define an S3 bucket.
 
 ## Install
 
-We aim to get the project on PyPI but for now you can just run:
-
 ```
 git clone https://github.com/jwplayer/sparksteps.git
 cd sparksteps/
@@ -57,11 +55,11 @@ Prompt parameters:
 ```
 
 The above example creates an EMR cluster of 1 node with default instance
-type _m4.large_, uploads the pyspark script episodes.py to the specified
-S3 bucket and copies the file from S3 to the cluster. Each operation is defined
-as an EMR “step” that you can monitor in EMR. The final step is to run the spark
-application with submit args that includes a custom spark-avro package and
-app args “--input”.
+type _m4.large_, uploads the pyspark script episodes.py and its dependencies to
+the specified S3 bucket and copies the file from S3 to the cluster.
+Each operation is defined as an EMR “step” that you can monitor in EMR. The
+final step is to run the spark application with submit args that includes a
+custom spark-avro package and app args “--input”.
 
 ## Run Spark Job on Existing Cluster
 
@@ -85,7 +83,7 @@ py.test sparksteps/tests.py
 
 ## Known Issues
 
-If a conf file is specified, its parameters will overwrite anything specified
+If a conf file is specified, its parameters will override anything specified
 in the command line arguments.
 
 ## License
