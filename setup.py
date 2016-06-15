@@ -8,7 +8,7 @@ setup(
     name='sparksteps',
     description='Create and add spark steps to EMR cluster',
     long_description=open('README.md').read(),
-    version='0.1',
+    version='0.1.0',
     author='Kamil Sindi (JWPlayer)',
     author_email='kamil@jwplayer.com',
     classifiers=textwrap.dedent("""
