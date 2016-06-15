@@ -1,3 +1,2 @@
 prune examples*
-prune tests*
 prune bootstrap*
