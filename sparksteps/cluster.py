@@ -9,7 +9,7 @@ from sparksteps import steps
 
 username = getpass.getuser()
 
-# conf if args.sparksteps_conf is set
+# conf if sparksteps_conf kwarg is set
 SPARKSTEPS_CONF = [
     {
         "Classification": "capacity-scheduler",
@@ -85,11 +85,7 @@ def emr_config(release_label, master, slave, num_nodes, keep_alive=False, **kw):
             'KeepJobFlowAliveWhenNoSteps': keep_alive,
             'TerminationProtected': False,
         },
-        Applications=[
-            {
-                'Name': 'Spark'
-            }
-        ],
+        Applications=[{'Name': 'Spark'}],
         VisibleToAllUsers=True,
         JobFlowRole='EMR_EC2_DefaultRole',
         ServiceRole='EMR_DefaultRole',
@@ -106,11 +102,8 @@ def emr_config(release_label, master, slave, num_nodes, keep_alive=False, **kw):
     if kw.get('tags'):
         config['Tags'] = parse_tags(kw.get('tags'))
 
-    additional_config = dict()
     if kw.get('conf_file'):  # if a conf file is specified
         with open(kw.get('conf_file')) as f:
-            additional_config = json.load(f)
-
-    update_dict(config, additional_config)
+            update_dict(config, json.load(f))
 
     return config

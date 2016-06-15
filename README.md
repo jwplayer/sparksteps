@@ -83,6 +83,11 @@ pip install -r requirements-test.txt
 py.test sparksteps/tests.py
 ```
 
+## Known Issues
+
+If a conf file is specified, its parameters will overwrite anything specified
+in the command line arguments.
+
 ## License
 
 Apache License 2.0

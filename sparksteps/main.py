@@ -55,7 +55,7 @@ def main():
     parser.add_argument('--app-args', type=shlex.split)
     parser.add_argument('--aws-region', required=True)
     parser.add_argument('--cluster-id')
-    parser.add_argument('--conf-file')
+    parser.add_argument('--conf-file', metavar='FILE')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--ec2-key')
     parser.add_argument('--ec2-subnet-id')
