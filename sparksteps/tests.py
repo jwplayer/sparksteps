@@ -16,7 +16,6 @@ def test_emr_config():
                         num_nodes=1, keep_alive=False,
                         conf_file='examples/cluster.json')
 
-    print(config)
     assert config == {'ReleaseLabel': 'emr-4.7.0',
                       'Name': 'Test SparkSteps',
                       'VisibleToAllUsers': True,
