@@ -21,12 +21,5 @@
         "spark.executor.instances": "1"
       }
     }
-  ],
-  "Tags": [
-    {
-      "Key": "Application",
-      "Value": "SparkSteps"
-
-    }
   ]
 }
