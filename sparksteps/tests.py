@@ -16,21 +16,23 @@ def test_emr_config():
                         num_nodes=1, keep_alive=False,
                         conf_file='examples/cluster.json')
 
-    assert config == {'Configurations': [{'Classification': 'spark-defaults',
-                                          'Properties': {
-                                              'spark.dynamicAllocation.enabled': 'false',
-                                              'spark.executor.instances': '1'}}],
-                      'ReleaseLabel': 'emr-4.7.0',
+    print(config)
+    assert config == {'ReleaseLabel': 'emr-4.7.0',
+                      'Name': 'Test SparkSteps',
+                      'VisibleToAllUsers': True,
+                      'Configurations': [{
+                          'Properties': {
+                              'spark.executor.instances': '1',
+                              'spark.dynamicAllocation.enabled': 'false'},
+                          'Classification': 'spark-defaults'}],
                       'JobFlowRole': 'EMR_EC2_DefaultRole',
-                      'ServiceRole': 'EMR_DefaultRole',
                       'Applications': [{'Name': 'Spark'}],
-                      'Name': 'Test SparkSteps', 'VisibleToAllUsers': True,
-                      'Tags': [{'Key': 'Application', 'Value': 'SparkSteps'}],
-                      'Instances': {'KeepJobFlowAliveWhenNoSteps': False,
-                                    'SlaveInstanceType': 'm4.2xlarge',
-                                    'InstanceCount': 1,
+                      'Instances': {'InstanceCount': 1,
                                     'TerminationProtected': True,
-                                    'MasterInstanceType': 'm4.large'}}
+                                    'MasterInstanceType': 'm4.large',
+                                    'KeepJobFlowAliveWhenNoSteps': False,
+                                    'SlaveInstanceType': 'm4.2xlarge'},
+                      'ServiceRole': 'EMR_DefaultRole'}
 
     client = boto3.client('emr', region_name='us-east-1')
     client.run_job_flow(**config)
