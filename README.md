@@ -83,8 +83,8 @@ py.test sparksteps/tests.py
 
 ## Known Issues
 
-If a conf file is specified, its parameters will override anything specified
-in the command line arguments.
+If a conf file is specified, its parameters will override the same parameters
+specified in the command line arguments.
 
 ## License
 
