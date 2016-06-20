@@ -8,11 +8,12 @@ Prompt parameters:
   aws-region:       AWS region name (required)
   cluster-id:       job flow id of existing cluster to submit to
   conf-file:        specify cluster config file
-  ec2-key:          name of the Amazon EC2 key pair to use when using SSH
+  ec2-key:          name of the Amazon EC2 key pair
   ec2-subnet-id:    Amazon VPC subnet id
   help (-h):        argparse help
   keep-alive:       Keep EMR cluster alive when no steps
   master:           instance type of of master host (default='m4.large')
+  name:             specify cluster name (defaults to
   num-nodes:        number of instances (default=1)
   release-label:    EMR release label (required)
   s3-bucket:        name of s3 bucket to upload spark file (required)
@@ -20,7 +21,7 @@ Prompt parameters:
   submit-args:      arguments passed to spark-submit
   sparksteps-conf:  use sparksteps Spark conf
   tags:             EMR cluster tags of the form "key1=value1 key2=value2"
-  uploads:          directories to upload to master instance in /home/hadoop/
+  uploads:          files to upload to /home/hadoop/ in master instance
 
 Examples:
   sparksteps examples/episodes.py \
@@ -61,6 +62,7 @@ def main():
     parser.add_argument('--ec2-subnet-id')
     parser.add_argument('--keep-alive', action='store_true')
     parser.add_argument('--master', default='m4.large')
+    parser.add_argument('--name')
     parser.add_argument('--num-nodes', type=int, default=1)
     parser.add_argument('--release-label', required=True)
     parser.add_argument('--s3-bucket', required=True)
