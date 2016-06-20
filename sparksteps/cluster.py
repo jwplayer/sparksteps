@@ -90,8 +90,8 @@ def emr_config(release_label, master, slave, num_nodes, keep_alive=False, **kw):
         JobFlowRole='EMR_EC2_DefaultRole',
         ServiceRole='EMR_DefaultRole',
     )
-    if kw.get('Name'):
-        config['Name'] = kw.get('Name')
+    if kw.get('name'):
+        config['Name'] = kw.get('name')
     if kw.get('sparksteps_conf', False):
         config['Configurations'] = SPARKSTEPS_CONF
     if kw.get('ec2_key'):
