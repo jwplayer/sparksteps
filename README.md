@@ -25,6 +25,7 @@ Prompt parameters:
   ec2-subnet-id:    Amazon VPC subnet id
   help (-h):        argparse help
   keep-alive:       Keep EMR cluster alive when no steps
+  name:             specify cluster name
   master:           instance type of of master host (default='m4.large')
   num-nodes:        number of instances (default=1)
   release-label:    EMR release label (required)

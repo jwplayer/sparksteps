@@ -13,7 +13,7 @@ Prompt parameters:
   help (-h):        argparse help
   keep-alive:       Keep EMR cluster alive when no steps
   master:           instance type of of master host (default='m4.large')
-  name:             specify cluster name (defaults to
+  name:             specify cluster name
   num-nodes:        number of instances (default=1)
   release-label:    EMR release label (required)
   s3-bucket:        name of s3 bucket to upload spark file (required)
