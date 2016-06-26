@@ -106,14 +106,17 @@ def emr_config(release_label, master, keep_alive=False, **kw):
                 'InstanceCount': kw['num_core'],
             })
         if kw.get('num_spot'):
-            config['Instances']['InstanceGroups'].append({
-                'Name': 'Task Nodes (Spot)',
-                'Market': 'SPOT',
+            task_group = {
+                'Name': 'Task Nodes',
+                'Market': 'ON_DEMAND',
                 'InstanceRole': 'TASK',
-                'BidPrice': kw['bid_price'],
                 'InstanceType': kw['slave'],
                 'InstanceCount': kw['num_spot'],
-            })
+            }
+            if kw['is_spot']:
+                task_group['Market'] = 'SPOT'
+                task_group['BidPrice'] = kw['bid_price']
+            config['Instances']['InstanceGroups'].append(task_group)
     if kw.get('name'):
         config['Name'] = kw['name']
     if kw.get('sparksteps_conf', False):

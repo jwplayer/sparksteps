@@ -83,13 +83,16 @@ def main():
     cluster_id = args.cluster_id
     if cluster_id is None:  # create cluster
         print("Launching cluster...")
-        d = vars(args)
+        args_dict = vars(args)
         if args.num_spot:
             bid_price, is_spot = get_bid_price(client, args.slave)
-            if not is_spot:
-                d['num_core'] = d.get('num_core', 0) + args.num_spot
-                d.pop('num_spot', None)
-        cluster_config = emr_config(**d)
+            args_dict['bid_price'] = str(bid_price)
+            args_dict['is_spot'] = is_spot
+            if is_spot:
+                print("Using spot pricing with bid price ${}".format(bid_price))
+            else:
+                print("Using on demand pricing (${})".format(bid_price))
+        cluster_config = emr_config(**args_dict)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
         print("Cluster ID: ", cluster_id)
