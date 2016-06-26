@@ -27,7 +27,8 @@ Prompt parameters:
   keep-alive:       Keep EMR cluster alive when no steps
   name:             specify cluster name
   master:           instance type of of master host (default='m4.large')
-  num-nodes:        number of instances (default=1)
+  num-core:         number of core nodes (default=0)
+  num-spot:         number of task nodes using dynamic spot pricing (default=0)
   release-label:    EMR release label (required)
   s3-bucket:        name of s3 bucket to upload spark file (required)
   slave:            instance type of of slave hosts (default='m4.2xlarge')
@@ -74,6 +75,21 @@ See examples/cluster.json for a detailed example. The formatting of options
 follows boto3 [run job flow](http://boto3.readthedocs.io/en/latest/reference/services/emr.html#EMR.Client.run_job_flow).
 Note you only need to specify properties you want to override as opposed to
 providing an entire configuration.
+
+## Dynamic Pricing (alpha)
+
+Use CLI option `--num-spot` to allow sparksteps to dynamically determine
+best bid price for EMR instances and create task nodes based on that bid
+price. 
+
+Currently the algorithm looks back at spot history over the last 12
+hours and calculates  `min(50% * on_demand_price, max_spot_price)` to
+determine bid price.
+That said, if the current spot price is over 80% of the on-demand cost,
+then on-demand instances are used to be conservative.
+
+Note: code depends on [ec2instances](http://www.ec2instances.info/) for
+getting demand price.
 
 ## Testing
 

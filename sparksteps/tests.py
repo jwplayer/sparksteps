@@ -8,38 +8,55 @@ from sparksteps.steps import setup_steps
 from sparksteps.cluster import emr_config
 
 TEST_BUCKET = 'sparksteps-test'
+AWS_REGION_NAME = 'us-east-1'
 
 
 @moto.mock_emr
 def test_emr_config():
-    config = emr_config('emr-4.6.0', master='m4.large', slave='m4.2xlarge',
-                        num_nodes=1, keep_alive=False,
-                        conf_file='examples/cluster.json')
-
-    assert config == {'ReleaseLabel': 'emr-4.7.0',
-                      'Name': 'Test SparkSteps',
-                      'VisibleToAllUsers': True,
-                      'Configurations': [{
-                          'Properties': {
-                              'spark.executor.instances': '1',
-                              'spark.dynamicAllocation.enabled': 'false'},
-                          'Classification': 'spark-defaults'}],
-                      'JobFlowRole': 'EMR_EC2_DefaultRole',
-                      'Applications': [{'Name': 'Spark'}],
-                      'Instances': {'InstanceCount': 1,
+    config = emr_config('emr-4.6.0', master='m4.large', keep_alive=False,
+                        slave='m4.2xlarge', num_core=1, num_spot=1,
+                        bid_price='0.1', conf_file='examples/cluster.json')
+    import pprint
+    print(config)
+    assert config == {u'Configurations': [{u'Properties': {
+        u'spark.dynamicAllocation.enabled': u'false',
+        u'spark.executor.instances': u'1'},
+                                           u'Classification': u'spark-defaults'}],
+                      'Instances': {u'InstanceCount': 1,
                                     'TerminationProtected': True,
-                                    'MasterInstanceType': 'm4.large',
+                                    'InstanceGroups': [
+                                        {'InstanceRole': 'MASTER',
+                                         'InstanceCount': 1,
+                                         'Name': 'Master Node',
+                                         'Market': 'ON_DEMAND',
+                                         'InstanceType': 'm4.large'},
+                                        {'InstanceRole': 'CORE',
+                                         'InstanceCount': 1,
+                                         'Name': 'Core Nodes',
+                                         'Market': 'ON_DEMAND',
+                                         'InstanceType': 'm4.2xlarge'},
+                                        {'InstanceCount': 1,
+                                         'Name': 'Task Nodes (Spot)',
+                                         'InstanceRole': 'TASK',
+                                         'BidPrice': '0.1',
+                                         'InstanceType': 'm4.2xlarge',
+                                         'Market': 'SPOT'}],
+                                    u'MasterInstanceType': u'm4.large',
                                     'KeepJobFlowAliveWhenNoSteps': False,
-                                    'SlaveInstanceType': 'm4.2xlarge'},
-                      'ServiceRole': 'EMR_DefaultRole'}
+                                    u'SlaveInstanceType': u'm4.2xlarge'},
+                      'JobFlowRole': 'EMR_EC2_DefaultRole',
+                      'Name': u'Test SparkSteps',
+                      'ServiceRole': 'EMR_DefaultRole',
+                      'Applications': [{u'Name': u'Spark'}],
+                      'ReleaseLabel': u'emr-4.7.0', 'VisibleToAllUsers': True}
 
-    client = boto3.client('emr', region_name='us-east-1')
+    client = boto3.client('emr', region_name=AWS_REGION_NAME)
     client.run_job_flow(**config)
 
 
 @moto.mock_s3
 def test_setup_steps():
-    s3 = boto3.resource('s3', region_name='us-east-1')
+    s3 = boto3.resource('s3', region_name=AWS_REGION_NAME)
     s3.create_bucket(Bucket=TEST_BUCKET)
     steps = (setup_steps(s3,
                          TEST_BUCKET,

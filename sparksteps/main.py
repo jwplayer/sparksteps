@@ -14,7 +14,8 @@ Prompt parameters:
   keep-alive:       Keep EMR cluster alive when no steps
   master:           instance type of of master host (default='m4.large')
   name:             specify cluster name
-  num-nodes:        number of instances (default=1)
+  num-core:         number of core nodes
+  num-spot:         number of task nodes using dynamic spot pricing
   release-label:    EMR release label (required)
   s3-bucket:        name of s3 bucket to upload spark file (required)
   slave:            instance type of of slave hosts (default='m4.2xlarge')
@@ -44,6 +45,7 @@ import boto3
 
 from sparksteps.steps import setup_steps
 from sparksteps.cluster import emr_config
+from sparksteps.pricing import get_bid_price
 
 
 def main():
@@ -63,10 +65,11 @@ def main():
     parser.add_argument('--keep-alive', action='store_true')
     parser.add_argument('--master', default='m4.large')
     parser.add_argument('--name')
-    parser.add_argument('--num-nodes', type=int, default=1)
+    parser.add_argument('--num-core', type=int)
+    parser.add_argument('--num-spot', type=int)
     parser.add_argument('--release-label', required=True)
     parser.add_argument('--s3-bucket', required=True)
-    parser.add_argument('--slave', default='m4.2xlarge')
+    parser.add_argument('--slave')
     parser.add_argument('--sparksteps-conf', action='store_true')
     parser.add_argument('--submit-args', type=shlex.split)
     parser.add_argument('--tags', nargs='*')
@@ -80,7 +83,13 @@ def main():
     cluster_id = args.cluster_id
     if cluster_id is None:  # create cluster
         print("Launching cluster...")
-        cluster_config = emr_config(**vars(args))
+        d = vars(args)
+        if args.num_spot:
+            bid_price, is_spot = get_bid_price(client, args.slave)
+            if not is_spot:
+                d['num_core'] = d.get('num_core', 0) + args.num_spot
+                d.pop('num_spot', None)
+        cluster_config = emr_config(**d)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
         print("Cluster ID: ", cluster_id)
