@@ -14,41 +14,38 @@ AWS_REGION_NAME = 'us-east-1'
 @moto.mock_emr
 def test_emr_config():
     config = emr_config('emr-4.6.0', master='m4.large', keep_alive=False,
-                        slave='m4.2xlarge', num_core=1, num_spot=1,
+                        slave='m4.2xlarge', num_core=1, num_task=1,
                         bid_price='0.1', conf_file='examples/cluster.json')
-    import pprint
-    print(config)
-    assert config == {u'Configurations': [{u'Properties': {
-        u'spark.dynamicAllocation.enabled': u'false',
-        u'spark.executor.instances': u'1'},
-                                           u'Classification': u'spark-defaults'}],
-                      'Instances': {u'InstanceCount': 1,
+    assert config == {'Instances': {'MasterInstanceType': 'm4.large',
                                     'TerminationProtected': True,
-                                    'InstanceGroups': [
-                                        {'InstanceRole': 'MASTER',
-                                         'InstanceCount': 1,
-                                         'Name': 'Master Node',
-                                         'Market': 'ON_DEMAND',
-                                         'InstanceType': 'm4.large'},
-                                        {'InstanceRole': 'CORE',
-                                         'InstanceCount': 1,
-                                         'Name': 'Core Nodes',
-                                         'Market': 'ON_DEMAND',
-                                         'InstanceType': 'm4.2xlarge'},
-                                        {'InstanceCount': 1,
-                                         'Name': 'Task Nodes (Spot)',
-                                         'InstanceRole': 'TASK',
-                                         'BidPrice': '0.1',
-                                         'InstanceType': 'm4.2xlarge',
-                                         'Market': 'SPOT'}],
-                                    u'MasterInstanceType': u'm4.large',
                                     'KeepJobFlowAliveWhenNoSteps': False,
-                                    u'SlaveInstanceType': u'm4.2xlarge'},
+                                    'SlaveInstanceType': 'm4.2xlarge',
+                                    'InstanceGroups': [{'InstanceCount': 1,
+                                                        'InstanceType': 'm4.large',
+                                                        'Market': 'ON_DEMAND',
+                                                        'Name': 'Master Node',
+                                                        'InstanceRole': 'MASTER'},
+                                                       {'InstanceCount': 1,
+                                                        'InstanceType': 'm4.2xlarge',
+                                                        'Market': 'ON_DEMAND',
+                                                        'Name': 'Core Nodes',
+                                                        'InstanceRole': 'CORE'},
+                                                       {'BidPrice': '0.1',
+                                                        'InstanceType': 'm4.2xlarge',
+                                                        'InstanceRole': 'TASK',
+                                                        'Name': 'Task Nodes',
+                                                        'InstanceCount': 1,
+                                                        'Market': 'SPOT'}],
+                                    'InstanceCount': 1},
+                      'Applications': [{'Name': 'Spark'}],
+                      'Name': 'Test SparkSteps',
                       'JobFlowRole': 'EMR_EC2_DefaultRole',
-                      'Name': u'Test SparkSteps',
-                      'ServiceRole': 'EMR_DefaultRole',
-                      'Applications': [{u'Name': u'Spark'}],
-                      'ReleaseLabel': u'emr-4.7.0', 'VisibleToAllUsers': True}
+                      'ReleaseLabel': 'emr-4.7.0', 'Configurations': [
+            {'Classification': 'spark-defaults',
+             'Properties': {'spark.executor.instances': '1',
+                            'spark.dynamicAllocation.enabled': 'false'}}],
+                      'VisibleToAllUsers': True,
+                      'ServiceRole': 'EMR_DefaultRole'}
 
     client = boto3.client('emr', region_name=AWS_REGION_NAME)
     client.run_job_flow(**config)
