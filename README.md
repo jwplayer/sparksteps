@@ -52,7 +52,6 @@ Prompt parameters:
     --uploads examples/lib examples/episodes.avro \
     --submit-args="--deploy-mode client --jars /home/hadoop/lib/spark-avro_2.10-2.0.2-custom.jar" \
     --app-args="--input /home/hadoop/episodes.avro" \
-    --num-nodes 1 \
     --tags Application="Spark Steps" \
     --conf-file examples/cluster.json \
     --debug
