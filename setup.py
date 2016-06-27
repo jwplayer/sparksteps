@@ -25,7 +25,7 @@ setup(
     license='Apache License 2.0',
     install_requires=[
         'boto3>=1.3.1',
-        'beautifulsoup4=>4.4.1',
+        'beautifulsoup4>=4.4.1',
         'six>=1.10.0'
     ],
     packages=find_packages(exclude=['tests.*', 'examples', 'bootstrap']),

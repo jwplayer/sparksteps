@@ -20,6 +20,8 @@ Prompt parameters:
   app-args:         arguments passed to main spark script
   aws-region:       AWS region name (required)
   cluster-id:       job flow id of existing cluster to submit to
+  debug:            allow debugging of cluster
+  dynamic-pricing:  boolean whether to use dynamic pricing for task nodes
   conf-file:        specify cluster config file
   ec2-key:          name of the Amazon EC2 key pair to use when using SSH
   ec2-subnet-id:    Amazon VPC subnet id
@@ -27,8 +29,8 @@ Prompt parameters:
   keep-alive:       Keep EMR cluster alive when no steps
   name:             specify cluster name
   master:           instance type of of master host (default='m4.large')
-  num-core:         number of core nodes (default=0)
-  num-spot:         number of task nodes using dynamic spot pricing (default=0)
+  num-core:         number of core nodes
+  num-task:         number of task nodes
   release-label:    EMR release label (required)
   s3-bucket:        name of s3 bucket to upload spark file (required)
   slave:            instance type of of slave hosts (default='m4.2xlarge')
@@ -78,9 +80,8 @@ providing an entire configuration.
 
 ## Dynamic Pricing (alpha)
 
-Use CLI option `--num-spot` to allow sparksteps to dynamically determine
-best bid price for EMR instances and create task nodes based on that bid
-price. 
+Use CLI option `--dynamic-pricing` to allow sparksteps to dynamically determine
+best bid price for EMR task notes. 
 
 Currently the algorithm looks back at spot history over the last 12
 hours and calculates  `min(50% * on_demand_price, max_spot_price)` to

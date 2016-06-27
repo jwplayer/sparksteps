@@ -5,7 +5,7 @@ import datetime
 import getpass
 import json
 
-from sparksteps import steps, pricing
+from sparksteps import steps
 
 username = getpass.getuser()
 
@@ -105,15 +105,15 @@ def emr_config(release_label, master, keep_alive=False, **kw):
                 'InstanceType': kw['slave'],
                 'InstanceCount': kw['num_core'],
             })
-        if kw.get('num_spot'):
+        if kw.get('num_task'):
             task_group = {
                 'Name': 'Task Nodes',
                 'Market': 'ON_DEMAND',
                 'InstanceRole': 'TASK',
                 'InstanceType': kw['slave'],
-                'InstanceCount': kw['num_spot'],
+                'InstanceCount': kw['num_task'],
             }
-            if kw['is_spot']:
+            if kw.get('bid_price'):
                 task_group['Market'] = 'SPOT'
                 task_group['BidPrice'] = kw['bid_price']
             config['Instances']['InstanceGroups'].append(task_group)
