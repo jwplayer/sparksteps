@@ -19,25 +19,26 @@ Prompt parameters:
   app               main spark script for submit spark (required)
   app-args:         arguments passed to main spark script
   aws-region:       AWS region name (required)
+  bid-price:        specify bid price for task nodes
   cluster-id:       job flow id of existing cluster to submit to
-  debug:            allow debugging of cluster
-  dynamic-pricing:  boolean whether to use dynamic pricing for task nodes
   conf-file:        specify cluster config file
-  ec2-key:          name of the Amazon EC2 key pair to use when using SSH
+  debug:            allow debugging of cluster
+  dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
+  ec2-key:          name of the Amazon EC2 key pair
   ec2-subnet-id:    Amazon VPC subnet id
   help (-h):        argparse help
   keep-alive:       Keep EMR cluster alive when no steps
-  name:             specify cluster name
   master:           instance type of of master host (default='m4.large')
+  name:             specify cluster name
   num-core:         number of core nodes
   num-task:         number of task nodes
   release-label:    EMR release label (required)
   s3-bucket:        name of s3 bucket to upload spark file (required)
-  slave:            instance type of of slave hosts (default='m4.2xlarge')
+  slave:            instance type of of slave hosts
   submit-args:      arguments passed to spark-submit
   sparksteps-conf:  use sparksteps Spark conf
   tags:             EMR cluster tags of the form "key1=value1 key2=value2"
-  uploads:          directories to upload to master instance in /home/hadoop/
+  uploads:          files to upload to /home/hadoop/ in master instance
 ```
 
 ## Example
