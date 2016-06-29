@@ -10,6 +10,8 @@ from sparksteps import steps
 username = getpass.getuser()
 
 # conf if sparksteps_conf kwarg is set
+# http://stackoverflow.com/a/34000524/690430
+# http://stackoverflow.com/a/33118489/690430
 SPARKSTEPS_CONF = [
     {
         "Classification": "capacity-scheduler",
@@ -71,17 +73,21 @@ def parse_tags(raw_tags_list):
     return tags_dict_list
 
 
-def emr_config(release_label, master, slave, num_nodes, keep_alive=False, **kw):
+def emr_config(release_label, master, keep_alive=False, **kw):
     timestamp = datetime.datetime.now().replace(microsecond=0)
-    # http://stackoverflow.com/a/34000524/690430
-    # http://stackoverflow.com/a/33118489/690430
     config = dict(
         Name="{} SparkStep Task [{}]".format(username, timestamp),
         ReleaseLabel=release_label,
         Instances={
-            'MasterInstanceType': master,
-            'SlaveInstanceType': slave,
-            'InstanceCount': num_nodes,
+            'InstanceGroups': [
+                {
+                    'Name': 'Master Node',
+                    'Market': 'ON_DEMAND',
+                    'InstanceRole': 'MASTER',
+                    'InstanceType': master,
+                    'InstanceCount': 1,
+                },
+            ],
             'KeepJobFlowAliveWhenNoSteps': keep_alive,
             'TerminationProtected': False,
         },
@@ -90,19 +96,40 @@ def emr_config(release_label, master, slave, num_nodes, keep_alive=False, **kw):
         JobFlowRole='EMR_EC2_DefaultRole',
         ServiceRole='EMR_DefaultRole',
     )
+    if kw.get('slave'):
+        if kw.get('num_core'):
+            config['Instances']['InstanceGroups'].append({
+                'Name': 'Core Nodes',
+                'Market': 'ON_DEMAND',
+                'InstanceRole': 'CORE',
+                'InstanceType': kw['slave'],
+                'InstanceCount': kw['num_core'],
+            })
+        if kw.get('num_task'):
+            task_group = {
+                'Name': 'Task Nodes',
+                'Market': 'ON_DEMAND',
+                'InstanceRole': 'TASK',
+                'InstanceType': kw['slave'],
+                'InstanceCount': kw['num_task'],
+            }
+            if kw.get('bid_price'):
+                task_group['Market'] = 'SPOT'
+                task_group['BidPrice'] = kw['bid_price']
+            config['Instances']['InstanceGroups'].append(task_group)
     if kw.get('name'):
-        config['Name'] = kw.get('name')
+        config['Name'] = kw['name']
     if kw.get('sparksteps_conf', False):
         config['Configurations'] = SPARKSTEPS_CONF
     if kw.get('ec2_key'):
-        config['Instances']['Ec2KeyName'] = kw.get('ec2_key')
+        config['Instances']['Ec2KeyName'] = kw['ec2_key']
     if kw.get('ec2_subnet_id'):
-        config['Instances']['Ec2SubnetId'] = kw.get('ec2_subnet_id')
+        config['Instances']['Ec2SubnetId'] = kw['ec2_subnet_id']
     if kw.get('debug', False) and kw.get('s3_bucket'):
-        config['LogUri'] = 's3n://%s/logs/sparksteps/' % kw.get('s3_bucket')
+        config['LogUri'] = 's3n://%s/logs/sparksteps/' % kw['s3_bucket']
         config['Steps'] = [steps.DebugStep().step]
     if kw.get('tags'):
-        config['Tags'] = parse_tags(kw.get('tags'))
+        config['Tags'] = parse_tags(kw['tags'])
 
     if kw.get('conf_file'):  # if a conf file is specified
         with open(kw.get('conf_file')) as f:

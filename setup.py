@@ -8,7 +8,7 @@ setup(
     name='sparksteps',
     description='Create and add spark steps to EMR cluster',
     long_description=open('README.md').read(),
-    version='0.1.0',
+    version='0.2.0',
     author='Kamil Sindi (JWPlayer)',
     author_email='kamil@jwplayer.com',
     classifiers=textwrap.dedent("""
@@ -23,7 +23,11 @@ setup(
         """).strip().splitlines(),
     keywords='AWS EMR pyspark spark boto',
     license='Apache License 2.0',
-    install_requires=['boto3>=1.3.1'],
+    install_requires=[
+        'boto3>=1.3.1',
+        'beautifulsoup4>=4.4.1',
+        'six>=1.10.0'
+    ],
     packages=find_packages(exclude=['tests.*', 'examples', 'bootstrap']),
     include_package_data=True,
     tests_require=['pytest', 'moto'],
