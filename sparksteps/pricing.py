@@ -95,7 +95,8 @@ def get_bid_price(client, instance_type):
     best_zone = min(zone_profile, key=lambda x: x.max)
     demand_price = get_demand_price(aws_region, instance_type)
     bid_price, is_spot = calc_optimal_bid_price(demand_price, best_zone)
-    return bid_price, is_spot
+    bid_price_rounded = round(bid_price, 2)  # AWS requires max 3 decimal places
+    return bid_price_rounded, is_spot
 
 
 if __name__ == '__main__':
