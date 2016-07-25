@@ -7,7 +7,6 @@ from setuptools import setup, find_packages
 setup(
     name='sparksteps',
     description='Create and add spark steps to EMR cluster',
-    long_description=open('README.md').read(),
     version='0.2.0',
     author='Kamil Sindi (JWPlayer)',
     author_email='kamil@jwplayer.com',
