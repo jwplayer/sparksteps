@@ -14,19 +14,10 @@ username = getpass.getuser()
 # http://stackoverflow.com/a/33118489/690430
 SPARKSTEPS_CONF = [
     {
-        "Classification": "capacity-scheduler",
+        "Classification": "spark",
         "Properties": {
-            "yarn.scheduler.capacity.resource-calculator": "org.apache.hadoop.yarn.util.resource.DominantResourceCalculator"
+            "maximizeResourceAllocation": "true"
         }
-    },
-    {
-        'Classification': 'spark-defaults',
-        'Properties': {
-            'spark.dynamicAllocation.enabled': 'true',
-            'spark.executor.instances': '0',
-            'spark.shuffle.memoryFraction': '0.5',
-            'spark.yarn.executor.memoryOverhead': '1024',
-        },
     },
 ]
 
