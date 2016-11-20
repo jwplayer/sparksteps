@@ -7,8 +7,7 @@ from setuptools import setup, find_packages
 setup(
     name='sparksteps',
     description='Create and add spark steps to EMR cluster',
-    long_description=open('README.md').read(),
-    version='0.2.0',
+    version='0.3.0',
     author='Kamil Sindi (JWPlayer)',
     author_email='kamil@jwplayer.com',
     classifiers=textwrap.dedent("""
@@ -21,7 +20,7 @@ setup(
         Programming Language :: Python :: 3
         Programming Language :: Python :: 3.5
         """).strip().splitlines(),
-    keywords='AWS EMR pyspark spark boto',
+    keywords='aws emr pyspark spark boto',
     license='Apache License 2.0',
     install_requires=[
         'boto3>=1.3.1',
