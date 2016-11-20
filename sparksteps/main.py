@@ -42,6 +42,7 @@ Examples:
 from __future__ import print_function
 
 import argparse
+import os
 import shlex
 
 import boto3
@@ -51,13 +52,20 @@ from sparksteps.cluster import emr_config
 from sparksteps.pricing import get_bid_price
 
 
+def is_valid_file(parser, arg):
+    if not os.path.exists(arg):
+        parser.error("The file %s does not exist!" % arg)
+    else:
+        return open(arg, 'r')  # return an open file handle
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument('app')
+    parser.add_argument('app', '--app', type=lambda x: is_valid_file(parser, x))
     parser.add_argument('--app-args', type=shlex.split)
     parser.add_argument('--aws-region')
     parser.add_argument('--bid-price')
