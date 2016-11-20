@@ -70,7 +70,7 @@ def emr_config(release_label, master, keep_alive=False, **kw):
             'KeepJobFlowAliveWhenNoSteps': keep_alive,
             'TerminationProtected': False,
         },
-        Applications=[{'Name': 'Spark'}],
+        Applications=[{'Name': 'Hadoop'}, {'Name': 'Spark'}],
         VisibleToAllUsers=True,
         JobFlowRole='EMR_EC2_DefaultRole',
         ServiceRole='EMR_DefaultRole',
