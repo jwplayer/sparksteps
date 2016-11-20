@@ -5,7 +5,7 @@
 Prompt parameters:
   app               main spark script for submit spark (required)
   app-args:         arguments passed to main spark script
-  aws-region:       AWS region name (required)
+  aws-region:       AWS region name
   bid-price:        specify bid price for task nodes
   cluster-id:       job flow id of existing cluster to submit to
   conf-file:        specify cluster config file
@@ -19,11 +19,11 @@ Prompt parameters:
   name:             specify cluster name
   num-core:         number of core nodes
   num-task:         number of task nodes
-  release-label:    EMR release label (required)
+  release-label:    EMR release label
   s3-bucket:        name of s3 bucket to upload spark file (required)
+  s3-dist-cp:       s3-dist-cp step after spark job is done
   slave:            instance type of of slave hosts
   submit-args:      arguments passed to spark-submit
-  sparksteps-conf:  use sparksteps Spark conf
   tags:             EMR cluster tags of the form "key1=value1 key2=value2"
   uploads:          files to upload to /home/hadoop/ in master instance
 
@@ -59,7 +59,7 @@ def main():
 
     parser.add_argument('app')
     parser.add_argument('--app-args', type=shlex.split)
-    parser.add_argument('--aws-region', required=True)
+    parser.add_argument('--aws-region')
     parser.add_argument('--bid-price')
     parser.add_argument('--cluster-id')
     parser.add_argument('--conf-file', metavar='FILE')
@@ -72,10 +72,10 @@ def main():
     parser.add_argument('--name')
     parser.add_argument('--num-core', type=int)
     parser.add_argument('--num-task', type=int)
-    parser.add_argument('--release-label', required=True)
+    parser.add_argument('--release-label')
     parser.add_argument('--s3-bucket', required=True)
+    parser.add_argument('--s3-dist-cp', type=shlex.split)
     parser.add_argument('--slave')
-    parser.add_argument('--sparksteps-conf', action='store_true')
     parser.add_argument('--submit-args', type=shlex.split)
     parser.add_argument('--tags', nargs='*')
     parser.add_argument('--uploads', nargs='*')
@@ -91,20 +91,25 @@ def main():
         args_dict = vars(args)
         if args.dynamic_pricing:
             ec2 = boto3.client('ec2', region_name=args.aws_region)
-            bid_price, is_spot = get_bid_price(ec2, args.slave)
-            args_dict['bid_price'] = str(bid_price)
+            bid_px, is_spot = get_bid_price(ec2, args.slave)
+            args_dict['bid_price'] = str(bid_px)
             if is_spot:
-                print("Using spot pricing with bid price ${}".format(bid_price))
+                print("Using spot pricing with bid price ${}".format(bid_px))
             else:
-                print("Spot price too high. Using on-demand ${}"
-                      .format(bid_price))
+                print("Spot price too high. Using on-demand ${}".format(bid_px))
         cluster_config = emr_config(**args_dict)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
         print("Cluster ID: ", cluster_id)
 
-    emr_steps = setup_steps(s3, args.s3_bucket, args.app, args.submit_args,
-                            args.app_args, args.uploads)
+    emr_steps = setup_steps(s3,
+                            args.s3_bucket,
+                            args.app,
+                            args.submit_args,
+                            args.app_args,
+                            args.uploads,
+                            args.s3_dist_cp)
+
     client.add_job_flow_steps(JobFlowId=cluster_id, Steps=emr_steps)
 
 
