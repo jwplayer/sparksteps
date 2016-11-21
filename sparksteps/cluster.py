@@ -9,18 +9,6 @@ from sparksteps import steps
 
 username = getpass.getuser()
 
-# conf if sparksteps_conf kwarg is set
-# http://stackoverflow.com/a/34000524/690430
-# http://stackoverflow.com/a/33118489/690430
-SPARKSTEPS_CONF = [
-    {
-        "Classification": "spark",
-        "Properties": {
-            "maximizeResourceAllocation": "true"
-        }
-    },
-]
-
 
 def update_dict(d, other):
     """Recursively merge or update dict-like objects.
@@ -82,7 +70,7 @@ def emr_config(release_label, master, keep_alive=False, **kw):
             'KeepJobFlowAliveWhenNoSteps': keep_alive,
             'TerminationProtected': False,
         },
-        Applications=[{'Name': 'Spark'}],
+        Applications=[{'Name': 'Hadoop'}, {'Name': 'Spark'}],
         VisibleToAllUsers=True,
         JobFlowRole='EMR_EC2_DefaultRole',
         ServiceRole='EMR_DefaultRole',
@@ -110,14 +98,12 @@ def emr_config(release_label, master, keep_alive=False, **kw):
             config['Instances']['InstanceGroups'].append(task_group)
     if kw.get('name'):
         config['Name'] = kw['name']
-    if kw.get('sparksteps_conf', False):
-        config['Configurations'] = SPARKSTEPS_CONF
     if kw.get('ec2_key'):
         config['Instances']['Ec2KeyName'] = kw['ec2_key']
     if kw.get('ec2_subnet_id'):
         config['Instances']['Ec2SubnetId'] = kw['ec2_subnet_id']
     if kw.get('debug', False) and kw.get('s3_bucket'):
-        config['LogUri'] = 's3n://%s/logs/sparksteps/' % kw['s3_bucket']
+        config['LogUri'] = 's3://%s/logs/sparksteps/' % kw['s3_bucket']
         config['Steps'] = [steps.DebugStep().step]
     if kw.get('tags'):
         config['Tags'] = parse_tags(kw['tags'])
