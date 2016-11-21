@@ -64,7 +64,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument('app', '--app', metavar='FILE',
+    parser.add_argument('app', metavar='FILE',
                         type=lambda x: is_valid_file(parser, x))
     parser.add_argument('--app-args', type=shlex.split)
     parser.add_argument('--aws-region')
