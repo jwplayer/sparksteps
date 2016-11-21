@@ -18,7 +18,7 @@ python setup.py install
 Prompt parameters:
   app               main spark script for submit spark (required)
   app-args:         arguments passed to main spark script
-  aws-region:       AWS region name (required)
+  aws-region:       AWS region name
   bid-price:        specify bid price for task nodes
   cluster-id:       job flow id of existing cluster to submit to
   conf-file:        specify cluster config file
@@ -32,8 +32,9 @@ Prompt parameters:
   name:             specify cluster name
   num-core:         number of core nodes
   num-task:         number of task nodes
-  release-label:    EMR release label (required)
+  release-label:    EMR release label
   s3-bucket:        name of s3 bucket to upload spark file (required)
+  s3-dist-cp:       s3-dist-cp step after spark job is done
   slave:            instance type of of slave hosts
   submit-args:      arguments passed to spark-submit
   sparksteps-conf:  use sparksteps Spark conf

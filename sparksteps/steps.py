@@ -137,6 +137,21 @@ class UnzipStep(CmdStep):
         return os.path.join(REMOTE_DIR, self.dirname)
 
 
+class S3DistCp(CmdStep):
+    on_failure = 'CONTINUE'
+
+    def __init__(self, s3_dist_cp):
+        self.s3_dist_cp = s3_dist_cp
+
+    @property
+    def step_name(self):
+        return "S3DistCp step"
+
+    @property
+    def cmd(self):
+        return ['s3-dist-cp'] + self.s3_dist_cp
+
+
 def upload_steps(s3_resource, bucket, path):
     """Upload files to S3 and get steps."""
     steps = []
@@ -152,15 +167,18 @@ def upload_steps(s3_resource, bucket, path):
     return steps
 
 
-def setup_steps(s3_resource, bucket, app_path, submit_args, app_args,
-                uploads=None):
+def setup_steps(s3, bucket, app_path, submit_args=None, app_args=None,
+                uploads=None, s3_dist_cp=None):
     cmd_steps = []
     paths = uploads or []
     paths.append(app_path)
 
     for path in paths:
-        cmd_steps.extend(upload_steps(s3_resource, bucket, path))
+        cmd_steps.extend(upload_steps(s3, bucket, path))
 
     cmd_steps.append(SparkStep(app_path, submit_args, app_args))
+
+    if s3_dist_cp is not None:
+        cmd_steps.append(S3DistCp(s3_dist_cp))
 
     return [s.step for s in cmd_steps]
