@@ -134,3 +134,5 @@ crashlytics-build.properties
 fabric.properties
 
 !examples/lib
+
+.idea

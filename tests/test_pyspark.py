@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """Test SparkSteps."""
-import os
+import os.path
 
 import shlex
 
-import boto3
 import moto
+import boto3
+import pytest
 
 from sparksteps.steps import setup_steps, S3DistCp
 from sparksteps.cluster import emr_config
@@ -13,39 +14,79 @@ from sparksteps.cluster import emr_config
 TEST_BUCKET = 'sparksteps-test'
 AWS_REGION_NAME = 'us-east-1'
 
-resources_dir = os.path.join(os.path.dirname(__file__), '../examples')
-CONF_FILE = os.path.join(resources_dir, 'cluster.json')
-LIB_DIR = os.path.join(resources_dir, 'lib')
-EPISODES_APP = os.path.join(resources_dir, 'episodes.py')
-EPISODES_AVRO = os.path.join(resources_dir, 'episodes.avro')
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+RESOURCE_DIR = os.path.join(DIR_PATH, '../examples')
+CONF_FILE = os.path.join(RESOURCE_DIR, 'cluster.json')
+LIB_DIR = os.path.join(RESOURCE_DIR, 'lib')
+EPISODES_APP = os.path.join(RESOURCE_DIR, 'episodes.py')
+EPISODES_AVRO = os.path.join(RESOURCE_DIR, 'episodes.avro')
 
 
 @moto.mock_emr
-def test_emr_config():
+def test_emr_basic_config():
+    config = emr_config('emr-5.2.0', master='m4.large', keep_alive=False,
+                        slave='m4.2xlarge', num_core=1, num_task=1,
+                        bid_price='0.1', name="Test SparkSteps")
+    import pprint
+    pprint.pprint(config)
+    assert config == {'Instances':
+                          {'InstanceGroups': [{'InstanceCount': 1,
+                                               'InstanceRole': 'MASTER',
+                                               'InstanceType': 'm4.large',
+                                               'Market': 'ON_DEMAND',
+                                               'Name': 'Master Node'},
+                                              {'InstanceCount': 1,
+                                               'InstanceRole': 'CORE',
+                                               'InstanceType': 'm4.2xlarge',
+                                               'Market': 'ON_DEMAND',
+                                               'Name': 'Core Nodes'},
+                                              {'BidPrice': '0.1',
+                                               'InstanceCount': 1,
+                                               'InstanceRole': 'TASK',
+                                               'InstanceType': 'm4.2xlarge',
+                                               'Market': 'SPOT',
+                                               'Name': 'Task Nodes'}],
+                           'KeepJobFlowAliveWhenNoSteps': False,
+                           'TerminationProtected': False
+                           },
+                      'Applications': [{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+                      'Name': 'Test SparkSteps',
+                      'JobFlowRole': 'EMR_EC2_DefaultRole',
+                      'ReleaseLabel': 'emr-5.2.0',
+                      'VisibleToAllUsers': True,
+                      'ServiceRole': 'EMR_DefaultRole'}
+
+    client = boto3.client('emr', region_name=AWS_REGION_NAME)
+    client.run_job_flow(**config)
+
+
+@moto.mock_emr
+def test_emr_file_config():
     config = emr_config('emr-4.6.0', master='m4.large', keep_alive=False,
                         slave='m4.2xlarge', num_core=1, num_task=1,
                         bid_price='0.1', conf_file=CONF_FILE)
-    assert config == {'Instances': {'MasterInstanceType': 'm4.large',
-                                    'TerminationProtected': True,
-                                    'KeepJobFlowAliveWhenNoSteps': False,
-                                    'SlaveInstanceType': 'm4.2xlarge',
-                                    'InstanceGroups': [{'InstanceCount': 1,
-                                                        'InstanceType': 'm4.large',
-                                                        'Market': 'ON_DEMAND',
-                                                        'Name': 'Master Node',
-                                                        'InstanceRole': 'MASTER'},
-                                                       {'InstanceCount': 1,
-                                                        'InstanceType': 'm4.2xlarge',
-                                                        'Market': 'ON_DEMAND',
-                                                        'Name': 'Core Nodes',
-                                                        'InstanceRole': 'CORE'},
-                                                       {'BidPrice': '0.1',
-                                                        'InstanceType': 'm4.2xlarge',
-                                                        'InstanceRole': 'TASK',
-                                                        'Name': 'Task Nodes',
-                                                        'InstanceCount': 1,
-                                                        'Market': 'SPOT'}],
-                                    'InstanceCount': 1},
+    assert config == {'Instances':
+                          {'MasterInstanceType': 'm4.large',
+                           'TerminationProtected': True,
+                           'KeepJobFlowAliveWhenNoSteps': False,
+                           'SlaveInstanceType': 'm4.2xlarge',
+                           'InstanceGroups': [{'InstanceCount': 1,
+                                               'InstanceType': 'm4.large',
+                                               'Market': 'ON_DEMAND',
+                                               'Name': 'Master Node',
+                                               'InstanceRole': 'MASTER'},
+                                              {'InstanceCount': 1,
+                                               'InstanceType': 'm4.2xlarge',
+                                               'Market': 'ON_DEMAND',
+                                               'Name': 'Core Nodes',
+                                               'InstanceRole': 'CORE'},
+                                              {'BidPrice': '0.1',
+                                               'InstanceType': 'm4.2xlarge',
+                                               'InstanceRole': 'TASK',
+                                               'Name': 'Task Nodes',
+                                               'InstanceCount': 1,
+                                               'Market': 'SPOT'}],
+                           'InstanceCount': 1},
                       'Applications': [{'Name': 'Spark'}],
                       'Name': 'Test SparkSteps',
                       'JobFlowRole': 'EMR_EC2_DefaultRole',

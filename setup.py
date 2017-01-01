@@ -4,36 +4,52 @@ import textwrap
 
 from setuptools import setup, find_packages
 
+with open('README.rst') as f:
+    readme = f.read()
+
 setup(
     name='sparksteps',
-    description='Create and add spark steps to EMR cluster',
-    version='0.3.0',
-    author='Kamil Sindi (JWPlayer)',
+    description='Workflow tool to launch Spark jobs on AWS EMR',
+    long_description=readme,
+    packages=find_packages(exclude=['tests', 'examples', 'bootstrap']),
+    use_scm_version=True,
+    author='Kamil Sindi',
     author_email='kamil@jwplayer.com',
-    classifiers=textwrap.dedent("""
-        Development Status :: 3 - Alpha
-        Intended Audience :: Developers
-        License :: OSI Approved :: Apache Software License
-        Environment :: Console
-        Programming Language :: Python
-        Programming Language :: Python :: 2.7
-        Programming Language :: Python :: 3
-        Programming Language :: Python :: 3.5
-        """).strip().splitlines(),
-    keywords='aws emr pyspark spark boto',
+    url='https://github.com/jwplayer/sparksteps',
+    keywords='aws emr pyspark spark boto'.split(),
     license='Apache License 2.0',
     install_requires=[
         'boto3>=1.3.1',
         'beautifulsoup4>=4.4.1',
         'six>=1.10.0'
     ],
-    packages=find_packages(exclude=['tests.*', 'examples', 'bootstrap']),
+    setup_requires=[
+        'pytest-runner',
+        'setuptools_scm',
+        'sphinx_rtd_theme',
+    ],
+    tests_require=[
+        'pytest',
+        'pytest-flake8',
+        'moto',
+    ],
     include_package_data=True,
-    tests_require=['pytest', 'moto'],
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'sparksteps=sparksteps.main:main'
+            'sparksteps=sparksteps.__main__:main'
         ]
-    }
+    },
+    classifiers=textwrap.dedent("""
+        Development Status :: 3 - Alpha
+        Intended Audience :: Developers
+        License :: OSI Approved :: Apache Software License
+        Environment :: Console
+        Programming Language :: Python :: 2
+        Programming Language :: Python :: 2.7
+        Programming Language :: Python :: 3
+        Programming Language :: Python :: 3.4
+        Programming Language :: Python :: 3.5
+        Programming Language :: Python :: 3.6
+        """).strip().splitlines(),
 )

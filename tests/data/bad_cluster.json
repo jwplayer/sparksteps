@@ -1,0 +1,25 @@
+{
+  "Name": "Test SparkSteps",
+  "ReleaseLabel": "emr-4.7.0",
+  "Instances": {
+    "MasterInstanceType": "m4.large",
+    "SlaveInstanceType": "m4.2xlarge",
+    "InstanceCount": 1,
+    "KeepJobFlowAliveWhenNoSteps": false,
+    "TerminationProtected": true
+  },
+  "Applications": [
+    {
+      "Name": "Spark"
+    }
+  ],
+  "Configurations": [
+    {
+      "Classification": "spark-defaults",
+      "Properties": {
+        "spark.dynamicAllocation.enabled": "false",
+        "spark.executor.instances": "1"
+      }
+    }
+  ]
+}

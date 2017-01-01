@@ -1,45 +1,63 @@
 # -*- coding: utf-8 -*-
 """Create EMR cluster."""
-import collections
-import datetime
-import getpass
+
 import json
+import getpass
+import logging
+import datetime
+import collections
 
 from sparksteps import steps
 
+logger = logging.getLogger(__name__)
+
 username = getpass.getuser()
 
+INVALID_KEYS = frozenset(
+    ['MasterInstanceType', 'SlaveInstanceType', 'InstanceCount']
+)
 
-def update_dict(d, other):
+
+def update_dict(d, other, override=False):
     """Recursively merge or update dict-like objects.
-    >>> from pprint import pprint
-    >>> pprint(update({'k1': {'k2': 2}}, {'k1': {'k2': {'k3': 3}}, 'k4': 4}))
-    {'k1': {'k2': {'k3': 3}}, 'k4': 4}
-    >>> pprint(update({'k1': {'k2': 2}}, {'k1': {'k3': 3}}))
-    {'k1': {'k2': 2, 'k3': 3}}
-    >>> pprint(update({'k1': {'k2': 2}}, dict()))
-    {'k1': {'k2': 2}}
-
     http://stackoverflow.com/a/32357112/690430
-    """
+
+    Examples:
+        >>> from pprint import pprint
+        >>> pprint(update_dict({'k1': {'k2': 2}}, {'k1': {'k2': {'k3': 3}}, 'k4': 4}, override=False))
+        {'k1': {'k2': 2}, 'k4': 4}
+        >>> pprint(update_dict({'k1': {'k2': 2}}, {'k1': {'k3': 3}}, override=False))
+        {'k1': {'k2': 2}}
+        >>> pprint(update_dict({'k1': {'k2': 2}}, dict(), override=False))
+        {'k1': {'k2': 2}}
+        >>> pprint(update_dict({'k1': {'k2': 2}}, {'k1': {'k2': {'k3': 3}}, 'k4': 4}, override=True))
+        {'k1': {'k2': {'k3': 3}}, 'k4': 4}
+        >>> pprint(update_dict({'k1': {'k2': 2}}, {'k1': {'k3': 3}}, override=True))
+        {'k1': {'k2': 2, 'k3': 3}}
+        >>> pprint(update_dict({'k1': {'k2': 2}}, dict(), override=True))
+        {'k1': {'k2': 2}}
+    """  # NOQA: E501
 
     for k, v in other.items():
         if isinstance(d, collections.Mapping):
-            if isinstance(v, collections.Mapping):
-                r = update_dict(d.get(k, {}), v)
-                d[k] = r
-            else:
-                d[k] = other[k]
+            if k not in d or override:
+                if isinstance(v, collections.Mapping):
+                    r = update_dict(d.get(k, {}), v, override)
+                    d[k] = r
+                else:
+                    d[k] = other[k]
         else:
             d = {k: other[k]}
     return d
 
 
 def parse_tags(raw_tags_list):
-    """
-    >>> from pprint import pprint
-    >>> pprint(parse_tags(['name="Peanut Pug"', 'age=5']))
-    [{'Key': 'name', 'Value': '"Peanut Pug"'}, {'Key': 'age', 'Value': '5'}]
+    """Parse AWS tags.
+
+    Examples:
+        >>> from pprint import pprint
+        >>> pprint(parse_tags(['name="Peanut Pug"', 'age=5']))
+        [{'Key': 'name', 'Value': '"Peanut Pug"'}, {'Key': 'age', 'Value': '5'}]
     """
     tags_dict_list = []
     for raw_tag in raw_tags_list:
@@ -110,6 +128,9 @@ def emr_config(release_label, master, keep_alive=False, **kw):
 
     if kw.get('conf_file'):  # if a conf file is specified
         with open(kw.get('conf_file')) as f:
-            update_dict(config, json.load(f))
+            update_dict(config, json.load(f), override=False)
+        if any([k in config for k in INVALID_KEYS]):
+            raise Exception("Detected key from %s. "
+                            "You must use InstanceGroups", INVALID_KEYS)
 
     return config

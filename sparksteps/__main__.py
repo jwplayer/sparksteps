@@ -15,6 +15,7 @@ Prompt parameters:
   ec2-subnet-id:    Amazon VPC subnet id
   help (-h):        argparse help
   keep-alive:       Keep EMR cluster alive when no steps
+  log-level (-l)    logging level (default=INFO)
   master:           instance type of of master host (default='m4.large')
   name:             specify cluster name
   num-core:         number of core nodes
@@ -41,15 +42,19 @@ Examples:
 """
 from __future__ import print_function
 
-import argparse
 import os
 import shlex
+import logging
+import argparse
 
 import boto3
 
-from sparksteps.steps import setup_steps
-from sparksteps.cluster import emr_config
-from sparksteps.pricing import get_bid_price
+from sparksteps import steps
+from sparksteps import cluster
+from sparksteps import pricing
+
+logger = logging.getLogger(__name__)
+LOGFORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
 
 
 def is_valid_file(parser, arg):
@@ -58,7 +63,7 @@ def is_valid_file(parser, arg):
     return arg
 
 
-def main():
+def create_parser():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -76,6 +81,7 @@ def main():
     parser.add_argument('--ec2-key')
     parser.add_argument('--ec2-subnet-id')
     parser.add_argument('--keep-alive', action='store_true')
+    parser.add_argument('--log-level', '-l', type=str.upper, default='INFO')
     parser.add_argument('--master', default='m4.large')
     parser.add_argument('--name')
     parser.add_argument('--num-core', type=int)
@@ -88,7 +94,17 @@ def main():
     parser.add_argument('--tags', nargs='*')
     parser.add_argument('--uploads', nargs='*')
 
+    return parser
+
+
+def main():
+    parser = create_parser()
     args = parser.parse_args()
+    print("Args: ", args)
+
+    numeric_level = getattr(logging, args.log_level, None)
+    logging.basicConfig(format=LOGFORMAT)
+    logger.setLevel(numeric_level)
 
     client = boto3.client('emr', region_name=args.aws_region)
     s3 = boto3.resource('s3')
@@ -99,27 +115,23 @@ def main():
         args_dict = vars(args)
         if args.dynamic_pricing:
             ec2 = boto3.client('ec2', region_name=args.aws_region)
-            bid_px, is_spot = get_bid_price(ec2, args.slave)
+            bid_px, is_spot = pricing.get_bid_price(ec2, args.slave)
             args_dict['bid_price'] = str(bid_px)
             if is_spot:
                 print("Using spot pricing with bid price ${}".format(bid_px))
             else:
                 print("Spot price too high. Using on-demand ${}".format(bid_px))
-        cluster_config = emr_config(**args_dict)
+        cluster_config = cluster.emr_config(**args_dict)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
         print("Cluster ID: ", cluster_id)
 
-    emr_steps = setup_steps(s3,
-                            args.s3_bucket,
-                            args.app,
-                            args.submit_args,
-                            args.app_args,
-                            args.uploads,
-                            args.s3_dist_cp)
+    emr_steps = steps.setup_steps(s3,
+                                  args.s3_bucket,
+                                  args.app,
+                                  args.submit_args,
+                                  args.app_args,
+                                  args.uploads,
+                                  args.s3_dist_cp)
 
     client.add_job_flow_steps(JobFlowId=cluster_id, Steps=emr_steps)
-
-
-if __name__ == '__main__':
-    main()

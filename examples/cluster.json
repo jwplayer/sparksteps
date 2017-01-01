@@ -2,9 +2,30 @@
   "Name": "Test SparkSteps",
   "ReleaseLabel": "emr-4.7.0",
   "Instances": {
-    "MasterInstanceType": "m4.large",
-    "SlaveInstanceType": "m4.2xlarge",
-    "InstanceCount": 1,
+    "InstanceGroups": [
+      {
+        "InstanceCount": 1,
+        "InstanceType": "m4.large",
+        "Market": "ON_DEMAND",
+        "Name": "Master Node",
+        "InstanceRole": "MASTER"
+      },
+      {
+        "InstanceCount": 1,
+        "InstanceType": "m4.2xlarge",
+        "Market": "ON_DEMAND",
+        "Name": "Core Nodes",
+        "InstanceRole": "CORE"
+      },
+      {
+        "BidPrice": "0.1",
+        "InstanceType": "m4.2xlarge",
+        "InstanceRole": "TASK",
+        "Name": "Task Nodes",
+        "InstanceCount": 1,
+        "Market": "SPOT"
+      }
+    ],
     "KeepJobFlowAliveWhenNoSteps": false,
     "TerminationProtected": true
   },
