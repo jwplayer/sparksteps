@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 """Get optimal pricing for EC2 instances."""
-import datetime
-import collections
-import itertools
 import json
+import datetime
+import itertools
+import logging
+import collections
 
 from bs4 import BeautifulSoup
 from six.moves.urllib.request import urlopen
+
+logger = logging.getLogger(__name__)
 
 EC2_INSTANCES_INFO_URL = "http://www.ec2instances.info/"
 SPOT_DEMAND_THRESHOLD_FACTOR = 0.8
@@ -17,7 +20,7 @@ Spot = collections.namedtuple('Spot', 'availability_zone timestamp price')
 
 
 def get_demand_price(aws_region, instance_type):
-    """
+    """Get AWS instance demand price.
 
     >>> print(get_demand_price('us-east-1', 'm4.2xlarge'))
     """
@@ -71,7 +74,7 @@ def get_zone_profile(zone_history):
             for k, v in zone_prices.items()]
 
 
-def calc_optimal_bid_price(demand_price, aws_zone):
+def determine_best_price(demand_price, aws_zone):
     """Calculate optimal bid price.
 
     Args:
@@ -88,18 +91,26 @@ def calc_optimal_bid_price(demand_price, aws_zone):
 
 
 def get_bid_price(client, instance_type):
+    """Determine AWS bid price.
+
+    Args:
+        client: boto3 client
+        instance_type: EC2 instance type
+
+    Returns:
+        float: bid price, bool: is stop
+
+    Examples:
+        >>> import boto3
+        >>> client = boto3.client('ec2', region_name='us-east-1')
+        >>> print(get_bid_price(client, 'm3.2xlarge'))
+    """
     aws_region = client._client_config.region_name
     history = get_spot_price_history(client, instance_type, SPOT_PRICE_LOOKBACK)
     by_zone = price_by_zone(history)
     zone_profile = get_zone_profile(by_zone)
     best_zone = min(zone_profile, key=lambda x: x.max)
     demand_price = get_demand_price(aws_region, instance_type)
-    bid_price, is_spot = calc_optimal_bid_price(demand_price, best_zone)
+    bid_price, is_spot = determine_best_price(demand_price, best_zone)
     bid_price_rounded = round(bid_price, 2)  # AWS requires max 3 decimal places
     return bid_price_rounded, is_spot
-
-
-if __name__ == '__main__':
-    import boto3
-    client = boto3.client('ec2', region_name='us-east-1')
-    print(get_bid_price(client, 'm3.2xlarge'))

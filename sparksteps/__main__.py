@@ -8,7 +8,6 @@ Prompt parameters:
   aws-region:       AWS region name
   bid-price:        specify bid price for task nodes
   cluster-id:       job flow id of existing cluster to submit to
-  conf-file:        specify cluster config file
   debug:            allow debugging of cluster
   dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
   ec2-key:          name of the Amazon EC2 key pair
@@ -36,7 +35,7 @@ Examples:
     --uploads examples/lib examples/episodes.avro \
     --submit-args="--jars /home/hadoop/lib/spark-avro_2.10-2.0.2-custom.jar" \
     --app-args="--input /home/hadoop/episodes.avro" \
-    --num-nodes 1 \
+    --num-core 1 \
     --debug
 
 """
@@ -69,13 +68,11 @@ def create_parser():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument('app', metavar='FILE',
-                        type=lambda x: is_valid_file(parser, x))
+    parser.add_argument('app', metavar='FILE')
     parser.add_argument('--app-args', type=shlex.split)
     parser.add_argument('--aws-region')
     parser.add_argument('--bid-price')
     parser.add_argument('--cluster-id')
-    parser.add_argument('--conf-file', metavar='FILE')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--dynamic-pricing', action='store_true')
     parser.add_argument('--ec2-key')
@@ -86,7 +83,7 @@ def create_parser():
     parser.add_argument('--name')
     parser.add_argument('--num-core', type=int)
     parser.add_argument('--num-task', type=int)
-    parser.add_argument('--release-label')
+    parser.add_argument('--release-label', required=True)
     parser.add_argument('--s3-bucket', required=True)
     parser.add_argument('--s3-dist-cp', type=shlex.split)
     parser.add_argument('--slave')
@@ -110,21 +107,21 @@ def main():
     s3 = boto3.resource('s3')
 
     cluster_id = args.cluster_id
-    if cluster_id is None:  # create cluster
-        print("Launching cluster...")
+    if cluster_id is None:
+        logger.info("Launching cluster...")
         args_dict = vars(args)
         if args.dynamic_pricing:
             ec2 = boto3.client('ec2', region_name=args.aws_region)
             bid_px, is_spot = pricing.get_bid_price(ec2, args.slave)
             args_dict['bid_price'] = str(bid_px)
             if is_spot:
-                print("Using spot pricing with bid price ${}".format(bid_px))
+                logger.info("Using spot pricing with bid price $%d", bid_px)
             else:
-                print("Spot price too high. Using on-demand ${}".format(bid_px))
+                logger.info("Spot price too high. Using on-demand %d", bid_px)
         cluster_config = cluster.emr_config(**args_dict)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
-        print("Cluster ID: ", cluster_id)
+        logger.info("Cluster ID: ", cluster_id)
 
     emr_steps = steps.setup_steps(s3,
                                   args.s3_bucket,

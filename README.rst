@@ -23,7 +23,6 @@ CLI Options
       aws-region:       AWS region name
       bid-price:        specify bid price for task nodes
       cluster-id:       job flow id of existing cluster to submit to
-      conf-file:        specify cluster config file
       debug:            allow debugging of cluster
       dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
       ec2-key:          name of the Amazon EC2 key pair
@@ -58,7 +57,6 @@ Example
         --submit-args="--deploy-mode client --jars /home/hadoop/lib/spark-avro_2.10-2.0.2-custom.jar" \
         --app-args="--input /home/hadoop/episodes.avro" \
         --tags Application="Spark Steps" \
-        --conf-file examples/cluster.json \
         --debug
 
 The above example creates an EMR cluster of 1 node with default instance
@@ -74,16 +72,6 @@ Run Spark Job on Existing Cluster
 
 You can use the option ``--cluster-id`` to specify a cluster to upload
 and run the Spark job. This is especially helpful for debugging.
-
-Specify Configuration
----------------------
-
-To override the default configurations, just use the ``--conf-file``
-option. See examples/cluster.json for a detailed example. The formatting
-of options follows boto3 `run job
-flow <http://boto3.readthedocs.io/en/latest/reference/services/emr.html#EMR.Client.run_job_flow>`__.
-Note you only need to specify properties you want to override as opposed
-to providing an entire configuration.
 
 Dynamic Pricing (alpha)
 -----------------------

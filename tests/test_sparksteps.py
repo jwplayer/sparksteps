@@ -1,34 +1,35 @@
 # -*- coding: utf-8 -*-
 """Test SparkSteps."""
+import shlex
 import os.path
 
-import shlex
-
-import moto
 import boto3
-import pytest
+import moto
 
-from sparksteps.steps import setup_steps, S3DistCp
+from sparksteps import __main__
 from sparksteps.cluster import emr_config
+from sparksteps.steps import setup_steps, S3DistCp
 
 TEST_BUCKET = 'sparksteps-test'
 AWS_REGION_NAME = 'us-east-1'
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-RESOURCE_DIR = os.path.join(DIR_PATH, '../examples')
-CONF_FILE = os.path.join(RESOURCE_DIR, 'cluster.json')
-LIB_DIR = os.path.join(RESOURCE_DIR, 'lib')
-EPISODES_APP = os.path.join(RESOURCE_DIR, 'episodes.py')
-EPISODES_AVRO = os.path.join(RESOURCE_DIR, 'episodes.avro')
+DATA_DIR = os.path.join(DIR_PATH, 'data')
+LIB_DIR = os.path.join(DATA_DIR, 'lib')
+EPISODES_APP = os.path.join(DATA_DIR, 'episodes.py')
+EPISODES_AVRO = os.path.join(DATA_DIR, 'episodes.avro')
 
 
 @moto.mock_emr
-def test_emr_basic_config():
-    config = emr_config('emr-5.2.0', master='m4.large', keep_alive=False,
-                        slave='m4.2xlarge', num_core=1, num_task=1,
-                        bid_price='0.1', name="Test SparkSteps")
-    import pprint
-    pprint.pprint(config)
+def test_emr_cluster_config():
+    config = emr_config('emr-5.2.0',
+                        master='m4.large',
+                        keep_alive=False,
+                        slave='m4.2xlarge',
+                        num_core=1,
+                        num_task=1,
+                        bid_price='0.1',
+                        name="Test SparkSteps")
     assert config == {'Instances':
                           {'InstanceGroups': [{'InstanceCount': 1,
                                                'InstanceRole': 'MASTER',
@@ -53,47 +54,6 @@ def test_emr_basic_config():
                       'Name': 'Test SparkSteps',
                       'JobFlowRole': 'EMR_EC2_DefaultRole',
                       'ReleaseLabel': 'emr-5.2.0',
-                      'VisibleToAllUsers': True,
-                      'ServiceRole': 'EMR_DefaultRole'}
-
-    client = boto3.client('emr', region_name=AWS_REGION_NAME)
-    client.run_job_flow(**config)
-
-
-@moto.mock_emr
-def test_emr_file_config():
-    config = emr_config('emr-4.6.0', master='m4.large', keep_alive=False,
-                        slave='m4.2xlarge', num_core=1, num_task=1,
-                        bid_price='0.1', conf_file=CONF_FILE)
-    assert config == {'Instances':
-                          {'MasterInstanceType': 'm4.large',
-                           'TerminationProtected': True,
-                           'KeepJobFlowAliveWhenNoSteps': False,
-                           'SlaveInstanceType': 'm4.2xlarge',
-                           'InstanceGroups': [{'InstanceCount': 1,
-                                               'InstanceType': 'm4.large',
-                                               'Market': 'ON_DEMAND',
-                                               'Name': 'Master Node',
-                                               'InstanceRole': 'MASTER'},
-                                              {'InstanceCount': 1,
-                                               'InstanceType': 'm4.2xlarge',
-                                               'Market': 'ON_DEMAND',
-                                               'Name': 'Core Nodes',
-                                               'InstanceRole': 'CORE'},
-                                              {'BidPrice': '0.1',
-                                               'InstanceType': 'm4.2xlarge',
-                                               'InstanceRole': 'TASK',
-                                               'Name': 'Task Nodes',
-                                               'InstanceCount': 1,
-                                               'Market': 'SPOT'}],
-                           'InstanceCount': 1},
-                      'Applications': [{'Name': 'Spark'}],
-                      'Name': 'Test SparkSteps',
-                      'JobFlowRole': 'EMR_EC2_DefaultRole',
-                      'ReleaseLabel': 'emr-4.7.0', 'Configurations': [
-            {'Classification': 'spark-defaults',
-             'Properties': {'spark.executor.instances': '1',
-                            'spark.dynamicAllocation.enabled': 'false'}}],
                       'VisibleToAllUsers': True,
                       'ServiceRole': 'EMR_DefaultRole'}
 
@@ -147,11 +107,41 @@ def test_setup_steps():
 def test_s3_dist_cp_step():
     splitted = shlex.split(
         "--s3Endpoint=s3.amazonaws.com --src=s3://mybucket/logs/j-3GYXXXXXX9IOJ/node/ --dest=hdfs:///output --srcPattern=.*[a-zA-Z,]+")
-    assert S3DistCp(splitted).step == {'ActionOnFailure': 'CONTINUE',
-                                       'HadoopJarStep': {'Args': ['s3-dist-cp',
-                                                                  '--s3Endpoint=s3.amazonaws.com',
-                                                                  '--src=s3://mybucket/logs/j-3GYXXXXXX9IOJ/node/',
-                                                                  '--dest=hdfs:///output',
-                                                                  '--srcPattern=.*[a-zA-Z,]+'],
-                                                         'Jar': 'command-runner.jar'},
-                                       'Name': 'S3DistCp step'}
+    assert S3DistCp(splitted).step == {
+        'ActionOnFailure': 'CONTINUE',
+        'HadoopJarStep': {
+            'Args': ['s3-dist-cp',
+                     '--s3Endpoint=s3.amazonaws.com',
+                     '--src=s3://mybucket/logs/j-3GYXXXXXX9IOJ/node/',
+                     '--dest=hdfs:///output',
+                     '--srcPattern=.*[a-zA-Z,]+'],
+            'Jar': 'command-runner.jar'},
+        'Name': 'S3DistCp step'
+    }
+
+
+def test_parser():
+    parser = __main__.create_parser()
+    cmd_args_str = """episodes.py \
+      --s3-bucket my-bucket \
+      --aws-region us-east-1 \
+      --release-label emr-4.7.0 \
+      --uploads examples/lib examples/episodes.avro \
+      --submit-args="--jars /home/hadoop/lib/spark-avro_2.10-2.0.2.jar" \
+      --app-args="--input /home/hadoop/episodes.avro" \
+      --num-core 1 \
+      --tags Name=MyName CostCenter=MyCostCenter \
+      --debug
+    """
+    args = parser.parse_args(shlex.split(cmd_args_str))
+    print(args)
+    assert args.app == 'episodes.py'
+    assert args.s3_bucket == 'my-bucket'
+    assert args.app_args == ['--input', '/home/hadoop/episodes.avro']
+    assert args.debug is True
+    assert args.master == 'm4.large'
+    assert args.release_label == 'emr-4.7.0'
+    assert args.submit_args == ['--jars',
+                                '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
+    assert args.uploads == ['examples/lib', 'examples/episodes.avro']
+    assert args.tags == ['Name=MyName', 'CostCenter=MyCostCenter']
