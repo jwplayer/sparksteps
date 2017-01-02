@@ -22,4 +22,4 @@ deploy:
   on:
     python: "3.5"
     tags: true
-    repo: jwplayer/jwalk
+    repo: jwplayer/sparksteps

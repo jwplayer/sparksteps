@@ -62,10 +62,10 @@ Example
 The above example creates an EMR cluster of 1 node with default instance
 type *m4.large*, uploads the pyspark script episodes.py and its
 dependencies to the specified S3 bucket and copies the file from S3 to
-the cluster. Each operation is defined as an EMR “step” that you can
+the cluster. Each operation is defined as an EMR "step" that you can
 monitor in EMR. The final step is to run the spark application with
 submit args that includes a custom spark-avro package and app args
-“--input”.
+"--input".
 
 Run Spark Job on Existing Cluster
 ---------------------------------

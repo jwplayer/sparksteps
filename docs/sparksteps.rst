@@ -12,14 +12,6 @@ sparksteps.cluster module
     :undoc-members:
     :show-inheritance:
 
-sparksteps.main module
-----------------------
-
-.. automodule:: sparksteps.main
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 sparksteps.pricing module
 -------------------------
 

@@ -2,5 +2,4 @@ include LICENSE README.rst CHANGELOG.rst requirements.txt tox.ini
 prune examples*
 prune bootstrap*
 recursive-include tests *
-recursive-include docs *
 recursive-exclude docs/_build *

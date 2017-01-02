@@ -25,9 +25,6 @@ clean-pyc:
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 
-build: clean-build
-	python setup.py build_ext --inplace
-
 install: clean-build
 	python setup.py install
 

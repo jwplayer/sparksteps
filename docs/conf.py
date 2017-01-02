@@ -58,7 +58,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'sparksteps'
+project = 'SparkSteps'
 copyright = '2017, JW Player'
 author = 'Kamil Sindi'
 
