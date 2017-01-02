@@ -41,7 +41,7 @@ setup(
         ]
     },
     classifiers=textwrap.dedent("""
-        Development Status :: 3 - Alpha
+        Development Status :: 4 - Beta
         Intended Audience :: Developers
         License :: OSI Approved :: Apache Software License
         Environment :: Console
