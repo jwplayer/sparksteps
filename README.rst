@@ -1,5 +1,5 @@
-SparkSteps
-==========
+Spark Steps
+===========
 
 .. image:: https://travis-ci.org/jwplayer/sparksteps.svg?branch=master
     :target: https://travis-ci.org/jwplayer/sparksteps
@@ -8,7 +8,6 @@ SparkSteps
 .. image:: https://readthedocs.org/projects/spark-steps/badge/?version=latest
     :target: http://spark-steps.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
-
 
 SparkSteps allows you to configure your EMR cluster and upload your
 spark script and its dependencies via AWS S3. All you need to do is
@@ -103,7 +102,6 @@ Testing
 ::
 
     make test
-
 
 License
 -------
