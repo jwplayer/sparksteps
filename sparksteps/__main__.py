@@ -121,7 +121,7 @@ def main():
         cluster_config = cluster.emr_config(**args_dict)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
-        logger.info("Cluster ID: ", cluster_id)
+        logger.info("Cluster ID: %s", cluster_id)
 
     emr_steps = steps.setup_steps(s3,
                                   args.s3_bucket,
