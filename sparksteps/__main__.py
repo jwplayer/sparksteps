@@ -7,7 +7,7 @@ Prompt parameters:
   app-args:         arguments passed to main spark script
   aws-region:       AWS region name
   bid-price:        specify bid price for task nodes
-  bootstrap-action: include a bootstrap script
+  bootstrap-action: include a bootstrap script (s3 path)
   cluster-id:       job flow id of existing cluster to submit to
   debug:            allow debugging of cluster
   dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
