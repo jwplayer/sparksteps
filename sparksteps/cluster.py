@@ -49,6 +49,8 @@ def emr_config(release_label, master, keep_alive=False, **kw):
             'TerminationProtected': False,
         },
         Applications=[{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+        BootstrapActions=[{'Name': 'bootstrap',
+                           'ScriptBootstrapAction': {'Path': kw['bootstrap_script']}}],
         VisibleToAllUsers=True,
         JobFlowRole='EMR_EC2_DefaultRole',
         ServiceRole='EMR_DefaultRole',

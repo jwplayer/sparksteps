@@ -29,7 +29,8 @@ def test_emr_cluster_config():
                         num_core=1,
                         num_task=1,
                         bid_price='0.1',
-                        name="Test SparkSteps")
+                        name="Test SparkSteps",
+                        bootstrap_script='s3://bucket/bootstrap-actions.sh')
     assert config == {'Instances':
                           {'InstanceGroups': [{'InstanceCount': 1,  # NOQA: E127
                                                'InstanceRole': 'MASTER',
@@ -51,6 +52,8 @@ def test_emr_cluster_config():
                            'TerminationProtected': False
                            },
                       'Applications': [{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+                      'BootstrapActions': [{'Name': 'bootstrap',
+                                            'ScriptBootstrapAction': {'Path': 's3://bucket/bootstrap-actions.sh'}}],
                       'Name': 'Test SparkSteps',
                       'JobFlowRole': 'EMR_EC2_DefaultRole',
                       'ReleaseLabel': 'emr-5.2.0',
@@ -131,6 +134,7 @@ def test_parser():
       --app-args="--input /home/hadoop/episodes.avro" \
       --num-core 1 \
       --tags Name=MyName CostCenter=MyCostCenter \
+      --bootstrap-actions s3://bucket/bootstrap-actions.sh \
       --debug
     """
     args = parser.parse_args(shlex.split(cmd_args_str))
@@ -144,3 +148,4 @@ def test_parser():
                                 '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
     assert args.uploads == ['examples/dir', 'examples/episodes.avro']
     assert args.tags == ['Name=MyName', 'CostCenter=MyCostCenter']
+    assert args.bootstrap_script == ['s3://bucket/bootstrap-actions.sh']

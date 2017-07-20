@@ -7,6 +7,7 @@ Prompt parameters:
   app-args:         arguments passed to main spark script
   aws-region:       AWS region name
   bid-price:        specify bid price for task nodes
+  bootstrap-action: include a bootstrap script
   cluster-id:       job flow id of existing cluster to submit to
   debug:            allow debugging of cluster
   dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
@@ -72,6 +73,7 @@ def create_parser():
     parser.add_argument('--app-args', type=shlex.split)
     parser.add_argument('--aws-region')
     parser.add_argument('--bid-price')
+    parser.add_argument('--bootstrap-script')
     parser.add_argument('--cluster-id')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--dynamic-pricing', action='store_true')
