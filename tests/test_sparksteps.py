@@ -29,6 +29,47 @@ def test_emr_cluster_config():
                         num_core=1,
                         num_task=1,
                         bid_price='0.1',
+                        name="Test SparkSteps")
+    assert config == {'Instances':
+                          {'InstanceGroups': [{'InstanceCount': 1,  # NOQA: E127
+                                               'InstanceRole': 'MASTER',
+                                               'InstanceType': 'm4.large',
+                                               'Market': 'ON_DEMAND',
+                                               'Name': 'Master Node'},
+                                              {'InstanceCount': 1,
+                                               'InstanceRole': 'CORE',
+                                               'InstanceType': 'm4.2xlarge',
+                                               'Market': 'ON_DEMAND',
+                                               'Name': 'Core Nodes'},
+                                              {'BidPrice': '0.1',
+                                               'InstanceCount': 1,
+                                               'InstanceRole': 'TASK',
+                                               'InstanceType': 'm4.2xlarge',
+                                               'Market': 'SPOT',
+                                               'Name': 'Task Nodes'}],
+                           'KeepJobFlowAliveWhenNoSteps': False,
+                           'TerminationProtected': False
+                           },
+                      'Applications': [{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+                      'Name': 'Test SparkSteps',
+                      'JobFlowRole': 'EMR_EC2_DefaultRole',
+                      'ReleaseLabel': 'emr-5.2.0',
+                      'VisibleToAllUsers': True,
+                      'ServiceRole': 'EMR_DefaultRole'}
+
+    client = boto3.client('emr', region_name=AWS_REGION_NAME)
+    client.run_job_flow(**config)
+
+
+@moto.mock_emr
+def test_emr_cluster_config_with_bootstrap():
+    config = emr_config('emr-5.2.0',
+                        master='m4.large',
+                        keep_alive=False,
+                        slave='m4.2xlarge',
+                        num_core=1,
+                        num_task=1,
+                        bid_price='0.1',
                         name="Test SparkSteps",
                         bootstrap_script='s3://bucket/bootstrap-actions.sh')
     assert config == {'Instances':
@@ -134,7 +175,6 @@ def test_parser():
       --app-args="--input /home/hadoop/episodes.avro" \
       --num-core 1 \
       --tags Name=MyName CostCenter=MyCostCenter \
-      --bootstrap-actions s3://bucket/bootstrap-actions.sh \
       --debug
     """
     args = parser.parse_args(shlex.split(cmd_args_str))
@@ -148,4 +188,31 @@ def test_parser():
                                 '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
     assert args.uploads == ['examples/dir', 'examples/episodes.avro']
     assert args.tags == ['Name=MyName', 'CostCenter=MyCostCenter']
-    assert args.bootstrap_script == ['s3://bucket/bootstrap-actions.sh']
+
+
+def test_parser_with_bootstrap():
+    parser = __main__.create_parser()
+    cmd_args_str = """episodes.py \
+      --s3-bucket my-bucket \
+      --aws-region us-east-1 \
+      --release-label emr-4.7.0 \
+      --uploads examples/dir examples/episodes.avro \
+      --submit-args="--jars /home/hadoop/lib/spark-avro_2.10-2.0.2.jar" \
+      --app-args="--input /home/hadoop/episodes.avro" \
+      --num-core 1 \
+      --tags Name=MyName CostCenter=MyCostCenter \
+      --bootstrap-script s3://bucket/bootstrap-actions.sh \
+      --debug
+    """
+    args = parser.parse_args(shlex.split(cmd_args_str))
+    assert args.app == 'episodes.py'
+    assert args.s3_bucket == 'my-bucket'
+    assert args.app_args == ['--input', '/home/hadoop/episodes.avro']
+    assert args.debug is True
+    assert args.master == 'm4.large'
+    assert args.release_label == 'emr-4.7.0'
+    assert args.submit_args == ['--jars',
+                                '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
+    assert args.uploads == ['examples/dir', 'examples/episodes.avro']
+    assert args.tags == ['Name=MyName', 'CostCenter=MyCostCenter']
+    assert args.bootstrap_script == 's3://bucket/bootstrap-actions.sh'
