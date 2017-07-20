@@ -29,7 +29,8 @@ CLI Options
       app               main spark script for submit spark (required)
       app-args:         arguments passed to main spark script
       aws-region:       AWS region name
-      bid-price:        specify bid price for task nodes
+      bid-price:        specify bid price for task 
+      bootstrap-action: include a bootstrap script (s3 path)
       cluster-id:       job flow id of existing cluster to submit to
       debug:            allow debugging of cluster
       dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
