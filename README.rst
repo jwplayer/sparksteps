@@ -33,6 +33,7 @@ CLI Options
       bootstrap-action: include a bootstrap script (s3 path)
       cluster-id:       job flow id of existing cluster to submit to
       debug:            allow debugging of cluster
+      defaults:         spark-defaults configuration of the form key1=val1 key=val2
       dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
       ec2-key:          name of the Amazon EC2 key pair
       ec2-subnet-id:    Amazon VPC subnet id
