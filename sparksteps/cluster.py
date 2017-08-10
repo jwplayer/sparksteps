@@ -29,6 +29,7 @@ def parse_tags(raw_tags_list):
 
     return tags_dict_list
 
+
 def parse_conf(raw_conf_list):
     """Parse configuration items for spark-defaults."""
     conf_dict = {}
@@ -38,6 +39,7 @@ def parse_conf(raw_conf_list):
             key, value = raw_conf.split('=', 1)
             conf_dict[key] = value
     return(conf_dict)
+
 
 def emr_config(release_label, master, keep_alive=False, **kw):
     timestamp = datetime.datetime.now().replace(microsecond=0)
