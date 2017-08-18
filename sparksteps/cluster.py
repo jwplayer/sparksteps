@@ -38,7 +38,7 @@ def parse_conf(raw_conf_list):
         if "=" in raw_conf:
             key, value = raw_conf.split('=', 1)
             conf_dict[key] = value
-    return(conf_dict)
+    return conf_dict
 
 
 def emr_config(release_label, master, keep_alive=False, **kw):
