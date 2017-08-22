@@ -10,6 +10,7 @@ Prompt parameters:
   bootstrap-action: include a bootstrap script (s3 path)
   cluster-id:       job flow id of existing cluster to submit to
   debug:            allow debugging of cluster
+  defaults:         spark-defaults configuration of the form key1=val1 key=val2
   dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
   ec2-key:          name of the Amazon EC2 key pair
   ec2-subnet-id:    Amazon VPC subnet id
@@ -76,6 +77,7 @@ def create_parser():
     parser.add_argument('--bootstrap-script')
     parser.add_argument('--cluster-id')
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--defaults', nargs='*')
     parser.add_argument('--dynamic-pricing', action='store_true')
     parser.add_argument('--ec2-key')
     parser.add_argument('--ec2-subnet-id')

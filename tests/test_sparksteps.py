@@ -175,6 +175,7 @@ def test_parser():
       --app-args="--input /home/hadoop/episodes.avro" \
       --num-core 1 \
       --tags Name=MyName CostCenter=MyCostCenter \
+      --defaults key=value another_key=another_value \
       --debug
     """
     args = parser.parse_args(shlex.split(cmd_args_str))
@@ -182,6 +183,7 @@ def test_parser():
     assert args.s3_bucket == 'my-bucket'
     assert args.app_args == ['--input', '/home/hadoop/episodes.avro']
     assert args.debug is True
+    assert args.defaults == ['key=value', 'another_key=another_value']
     assert args.master == 'm4.large'
     assert args.release_label == 'emr-4.7.0'
     assert args.submit_args == ['--jars',
@@ -201,6 +203,7 @@ def test_parser_with_bootstrap():
       --app-args="--input /home/hadoop/episodes.avro" \
       --num-core 1 \
       --tags Name=MyName CostCenter=MyCostCenter \
+      --defaults key=value another_key=another_value \
       --bootstrap-script s3://bucket/bootstrap-actions.sh \
       --debug
     """
@@ -209,6 +212,7 @@ def test_parser_with_bootstrap():
     assert args.s3_bucket == 'my-bucket'
     assert args.app_args == ['--input', '/home/hadoop/episodes.avro']
     assert args.debug is True
+    assert args.defaults == ['key=value', 'another_key=another_value']
     assert args.master == 'm4.large'
     assert args.release_label == 'emr-4.7.0'
     assert args.submit_args == ['--jars',

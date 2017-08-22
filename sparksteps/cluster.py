@@ -30,6 +30,17 @@ def parse_tags(raw_tags_list):
     return tags_dict_list
 
 
+def parse_conf(raw_conf_list):
+    """Parse configuration items for spark-defaults."""
+    conf_dict = {}
+
+    for raw_conf in raw_conf_list:
+        if "=" in raw_conf:
+            key, value = raw_conf.split('=', 1)
+            conf_dict[key] = value
+    return conf_dict
+
+
 def emr_config(release_label, master, keep_alive=False, **kw):
     timestamp = datetime.datetime.now().replace(microsecond=0)
     config = dict(
@@ -85,6 +96,9 @@ def emr_config(release_label, master, keep_alive=False, **kw):
         config['Steps'] = [steps.DebugStep().step]
     if kw.get('tags'):
         config['Tags'] = parse_tags(kw['tags'])
+    if kw.get('defaults'):
+        config['Configurations'] = [{'Classification': 'spark-defaults',
+                                     'Properties': parse_conf(kw['defaults'])}]
     if kw.get('bootstrap_script'):
         config['BootstrapActions'] = [{'Name': 'bootstrap',
                                        'ScriptBootstrapAction': {'Path': kw['bootstrap_script']}}]
