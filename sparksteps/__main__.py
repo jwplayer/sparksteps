@@ -43,6 +43,7 @@ Examples:
 """
 from __future__ import print_function
 
+import json
 import os
 import shlex
 import logging
@@ -135,4 +136,10 @@ def main():
                                   args.uploads,
                                   args.s3_dist_cp)
 
-    client.add_job_flow_steps(JobFlowId=cluster_id, Steps=emr_steps)
+    response = client.add_job_flow_steps(JobFlowId=cluster_id, Steps=emr_steps)
+
+    try:
+        step_ids = json.dumps(response['StepIds'])
+    except KeyError:
+        step_ids = 'Invalid response'
+    logger.info("Step IDs: %s", step_ids)
