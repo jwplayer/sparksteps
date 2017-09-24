@@ -105,6 +105,11 @@ Testing
 
     make test
 
+Blog
+----
+Read more about sparksteps in our blog post here:
+https://www.jwplayer.com/blog/sparksteps/
+
 License
 -------
 
