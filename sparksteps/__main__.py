@@ -122,9 +122,9 @@ def main():
             bid_px, is_spot = pricing.get_bid_price(ec2, args.slave)
             args_dict['bid_price'] = str(bid_px)
             if is_spot:
-                logger.info("Using spot pricing with bid price $%d", bid_px)
+                logger.info("Using spot pricing with bid price $%.2f", bid_px)
             else:
-                logger.info("Spot price too high. Using on-demand %d", bid_px)
+                logger.info("Spot price too high. Using on-demand price of $%.2f", bid_px)
         cluster_config = cluster.emr_config(**args_dict)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
