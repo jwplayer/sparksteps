@@ -99,6 +99,13 @@ def emr_config(release_label, master, keep_alive=False, **kw):
     if kw.get('defaults'):
         config['Configurations'] = [{'Classification': 'spark-defaults',
                                      'Properties': parse_conf(kw['defaults'])}]
+    if kw.get('maximize_resource_allocation'):
+        configurations = config.get('Configurations', [])
+        configurations.append({
+            'Classification': 'spark',
+            'Properties': {'maximizeResourceAllocation': 'true'}
+        })
+        config['Configurations'] = configurations
     if kw.get('bootstrap_script'):
         config['BootstrapActions'] = [{'Name': 'bootstrap',
                                        'ScriptBootstrapAction': {'Path': kw['bootstrap_script']}}]

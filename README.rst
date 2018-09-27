@@ -26,31 +26,32 @@ CLI Options
 ::
 
     Prompt parameters:
-      app               main spark script for submit spark (required)
-      app-args:         arguments passed to main spark script
-      aws-region:       AWS region name
-      bid-price:        specify bid price for task 
-      bootstrap-action: include a bootstrap script (s3 path)
-      cluster-id:       job flow id of existing cluster to submit to
-      debug:            allow debugging of cluster
-      defaults:         spark-defaults configuration of the form key1=val1 key=val2
-      dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
-      ec2-key:          name of the Amazon EC2 key pair
-      ec2-subnet-id:    Amazon VPC subnet id
-      help (-h):        argparse help
-      keep-alive:       Keep EMR cluster alive when no steps
-      master:           instance type of of master host (default='m4.large')
-      name:             specify cluster name
-      num-core:         number of core nodes
-      num-task:         number of task nodes
-      release-label:    EMR release label
-      s3-bucket:        name of s3 bucket to upload spark file (required)
-      s3-dist-cp:       s3-dist-cp step after spark job is done
-      slave:            instance type of of slave hosts
-      submit-args:      arguments passed to spark-submit
-      sparksteps-conf:  use sparksteps Spark conf
-      tags:             EMR cluster tags of the form "key1=value1 key2=value2"
-      uploads:          files to upload to /home/hadoop/ in master instance
+      app                           main spark script for submit spark (required)
+      app-args:                     arguments passed to main spark script
+      aws-region:                   AWS region name
+      bid-price:                    specify bid price for task 
+      bootstrap-action:             include a bootstrap script (s3 path)
+      cluster-id:                   job flow id of existing cluster to submit to
+      debug:                        allow debugging of cluster
+      defaults:                     spark-defaults configuration of the form key1=val1 key=val2
+      dynamic-pricing:              allow sparksteps to determine best bid price for task nodes
+      ec2-key:                      name of the Amazon EC2 key pair
+      ec2-subnet-id:                Amazon VPC subnet id
+      help (-h):                    argparse help
+      keep-alive:                   Keep EMR cluster alive when no steps
+      master:                       instance type of of master host (default='m4.large')
+      name:                         specify cluster name
+      num-core:                     number of core nodes
+      num-task:                     number of task nodes
+      release-label:                EMR release label
+      s3-bucket:                    name of s3 bucket to upload spark file (required)
+      s3-dist-cp:                   s3-dist-cp step after spark job is done
+      slave:                        instance type of of slave hosts
+      submit-args:                  arguments passed to spark-submit
+      sparksteps-conf:              use sparksteps Spark conf
+      tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
+      uploads:                      files to upload to /home/hadoop/ in master instance
+      maximize-resource-allocation: Sets the maximizeResourceAllocation property for the cluster to true when supplied.
 
 Example
 -------

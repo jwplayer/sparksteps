@@ -29,6 +29,7 @@ def test_emr_cluster_config():
                         num_core=1,
                         num_task=1,
                         bid_price='0.1',
+                        maximize_resource_allocation=True,
                         name="Test SparkSteps")
     assert config == {'Instances':
                           {'InstanceGroups': [{'InstanceCount': 1,  # NOQA: E127
@@ -55,7 +56,10 @@ def test_emr_cluster_config():
                       'JobFlowRole': 'EMR_EC2_DefaultRole',
                       'ReleaseLabel': 'emr-5.2.0',
                       'VisibleToAllUsers': True,
-                      'ServiceRole': 'EMR_DefaultRole'}
+                      'ServiceRole': 'EMR_DefaultRole',
+                      'Configurations': [{'Classification': 'spark',
+                                          'Properties': {'maximizeResourceAllocation': 'true'}}]
+                      }
 
     client = boto3.client('emr', region_name=AWS_REGION_NAME)
     client.run_job_flow(**config)
@@ -176,6 +180,7 @@ def test_parser():
       --num-core 1 \
       --tags Name=MyName CostCenter=MyCostCenter \
       --defaults key=value another_key=another_value \
+      --maximize-resource-allocation \
       --debug
     """
     args = parser.parse_args(shlex.split(cmd_args_str))
@@ -190,6 +195,7 @@ def test_parser():
                                 '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
     assert args.uploads == ['examples/dir', 'examples/episodes.avro']
     assert args.tags == ['Name=MyName', 'CostCenter=MyCostCenter']
+    assert args.maximize_resource_allocation is True
 
 
 def test_parser_with_bootstrap():

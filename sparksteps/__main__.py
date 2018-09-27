@@ -3,31 +3,32 @@
 """Create Spark cluster on EMR.
 
 Prompt parameters:
-  app               main spark script for submit spark (required)
-  app-args:         arguments passed to main spark script
-  aws-region:       AWS region name
-  bid-price:        specify bid price for task nodes
-  bootstrap-action: include a bootstrap script (s3 path)
-  cluster-id:       job flow id of existing cluster to submit to
-  debug:            allow debugging of cluster
-  defaults:         spark-defaults configuration of the form key1=val1 key=val2
-  dynamic-pricing:  allow sparksteps to determine best bid price for task nodes
-  ec2-key:          name of the Amazon EC2 key pair
-  ec2-subnet-id:    Amazon VPC subnet id
-  help (-h):        argparse help
-  keep-alive:       Keep EMR cluster alive when no steps
-  log-level (-l)    logging level (default=INFO)
-  master:           instance type of of master host (default='m4.large')
-  name:             specify cluster name
-  num-core:         number of core nodes
-  num-task:         number of task nodes
-  release-label:    EMR release label
-  s3-bucket:        name of s3 bucket to upload spark file (required)
-  s3-dist-cp:       s3-dist-cp step after spark job is done
-  slave:            instance type of of slave hosts
-  submit-args:      arguments passed to spark-submit
-  tags:             EMR cluster tags of the form "key1=value1 key2=value2"
-  uploads:          files to upload to /home/hadoop/ in master instance
+  app                           main spark script for submit spark (required)
+  app-args:                     arguments passed to main spark script
+  aws-region:                   AWS region name
+  bid-price:                    specify bid price for task nodes
+  bootstrap-action:             include a bootstrap script (s3 path)
+  cluster-id:                   job flow id of existing cluster to submit to
+  debug:                        allow debugging of cluster
+  defaults:                     spark-defaults configuration of the form key1=val1 key=val2
+  dynamic-pricing:              allow sparksteps to determine best bid price for task nodes
+  ec2-key:                      name of the Amazon EC2 key pair
+  ec2-subnet-id:                Amazon VPC subnet id
+  help (-h):                    argparse help
+  keep-alive:                   Keep EMR cluster alive when no steps
+  log-level (-l)                logging level (default=INFO)
+  master:                       instance type of of master host (default='m4.large')
+  name:                         specify cluster name
+  num-core:                     number of core nodes
+  num-task:                     number of task nodes
+  release-label:                EMR release label
+  s3-bucket:                    name of s3 bucket to upload spark file (required)
+  s3-dist-cp:                   s3-dist-cp step after spark job is done
+  slave:                        instance type of of slave hosts
+  submit-args:                  arguments passed to spark-submit
+  tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
+  uploads:                      files to upload to /home/hadoop/ in master instance
+  maximize-resource-allocation: Sets the maximizeResourceAllocation property for the cluster to true when supplied.
 
 Examples:
   sparksteps examples/episodes.py \
@@ -95,6 +96,7 @@ def create_parser():
     parser.add_argument('--submit-args', type=shlex.split)
     parser.add_argument('--tags', nargs='*')
     parser.add_argument('--uploads', nargs='*')
+    parser.add_argument('--maximize-resource-allocation', action='store_true')
 
     return parser
 
@@ -120,9 +122,9 @@ def main():
             bid_px, is_spot = pricing.get_bid_price(ec2, args.slave)
             args_dict['bid_price'] = str(bid_px)
             if is_spot:
-                logger.info("Using spot pricing with bid price $%d", bid_px)
+                logger.info("Using spot pricing with bid price $%.2f", bid_px)
             else:
-                logger.info("Spot price too high. Using on-demand %d", bid_px)
+                logger.info("Spot price too high. Using on-demand price of $%.2f", bid_px)
         cluster_config = cluster.emr_config(**args_dict)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
