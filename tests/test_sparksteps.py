@@ -23,12 +23,13 @@ EPISODES_AVRO = os.path.join(DATA_DIR, 'episodes.avro')
 @moto.mock_emr
 def test_emr_cluster_config():
     config = emr_config('emr-5.2.0',
-                        master='m4.large',
+                        instance_type_master='m4.large',
                         keep_alive=False,
-                        slave='m4.2xlarge',
+                        instance_type_core='m4.2xlarge',
+                        instance_type_task='m4.2xlarge',
                         num_core=1,
                         num_task=1,
-                        bid_price='0.1',
+                        bid_price_task='0.1',
                         maximize_resource_allocation=True,
                         name="Test SparkSteps")
     assert config == {'Instances':
@@ -68,12 +69,13 @@ def test_emr_cluster_config():
 @moto.mock_emr
 def test_emr_cluster_config_with_bootstrap():
     config = emr_config('emr-5.2.0',
-                        master='m4.large',
+                        instance_type_master='m4.large',
                         keep_alive=False,
-                        slave='m4.2xlarge',
+                        instance_type_core='m4.2xlarge',
+                        instance_type_task='m4.2xlarge',
                         num_core=1,
                         num_task=1,
-                        bid_price='0.1',
+                        bid_price_task='0.1',
                         name="Test SparkSteps",
                         bootstrap_script='s3://bucket/bootstrap-actions.sh')
     assert config == {'Instances':
@@ -183,19 +185,55 @@ def test_parser():
       --maximize-resource-allocation \
       --debug
     """
-    args = parser.parse_args(shlex.split(cmd_args_str))
-    assert args.app == 'episodes.py'
-    assert args.s3_bucket == 'my-bucket'
-    assert args.app_args == ['--input', '/home/hadoop/episodes.avro']
-    assert args.debug is True
-    assert args.defaults == ['key=value', 'another_key=another_value']
-    assert args.master == 'm4.large'
-    assert args.release_label == 'emr-4.7.0'
-    assert args.submit_args == ['--jars',
-                                '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
-    assert args.uploads == ['examples/dir', 'examples/episodes.avro']
-    assert args.tags == ['Name=MyName', 'CostCenter=MyCostCenter']
-    assert args.maximize_resource_allocation is True
+    args = __main__.parse_cli_args(parser, args=shlex.split(cmd_args_str))
+    assert args['app'] == 'episodes.py'
+    assert args['s3_bucket'] == 'my-bucket'
+    assert args['app_args'] == ['--input', '/home/hadoop/episodes.avro']
+    assert args['debug'] is True
+    assert args['defaults'] == ['key=value', 'another_key=another_value']
+    assert args['instance_type_master'] == 'm4.large'
+    assert args['release_label'] == 'emr-4.7.0'
+    assert args['submit_args'] == ['--jars',
+                                   '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
+    assert args['uploads'] == ['examples/dir', 'examples/episodes.avro']
+    assert args['tags'] == ['Name=MyName', 'CostCenter=MyCostCenter']
+    assert args['maximize_resource_allocation'] is True
+    assert args['num_core'] == 1
+
+
+def test_parser_deprecated_args():
+    parser = __main__.create_parser()
+    cmd_args_str = """episodes.py \
+      --s3-bucket my-bucket \
+      --aws-region us-east-1 \
+      --release-label emr-4.7.0 \
+      --uploads examples/dir examples/episodes.avro \
+      --submit-args="--jars /home/hadoop/lib/spark-avro_2.10-2.0.2.jar" \
+      --app-args="--input /home/hadoop/episodes.avro" \
+      --master m4.4xlarge \
+      --slave c3.8xlarge \
+      --num-core 1 \
+      --dynamic-pricing \
+      --tags Name=MyName CostCenter=MyCostCenter \
+      --defaults key=value another_key=another_value \
+      --maximize-resource-allocation \
+      --debug
+    """
+    args = __main__.parse_cli_args(parser, args=shlex.split(cmd_args_str))
+    assert args['app'] == 'episodes.py'
+    assert args['s3_bucket'] == 'my-bucket'
+    assert args['app_args'] == ['--input', '/home/hadoop/episodes.avro']
+    assert args['debug'] is True
+    assert args['defaults'] == ['key=value', 'another_key=another_value']
+    assert args['instance_type_master'] == 'm4.4xlarge'
+    assert args['instance_type_core'] == 'c3.8xlarge'
+    assert args['dynamic_pricing_task'] is True
+    assert args['release_label'] == 'emr-4.7.0'
+    assert args['submit_args'] == ['--jars',
+                                   '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
+    assert args['uploads'] == ['examples/dir', 'examples/episodes.avro']
+    assert args['tags'] == ['Name=MyName', 'CostCenter=MyCostCenter']
+    assert args['maximize_resource_allocation'] is True
 
 
 def test_parser_with_bootstrap():
@@ -213,16 +251,16 @@ def test_parser_with_bootstrap():
       --bootstrap-script s3://bucket/bootstrap-actions.sh \
       --debug
     """
-    args = parser.parse_args(shlex.split(cmd_args_str))
-    assert args.app == 'episodes.py'
-    assert args.s3_bucket == 'my-bucket'
-    assert args.app_args == ['--input', '/home/hadoop/episodes.avro']
-    assert args.debug is True
-    assert args.defaults == ['key=value', 'another_key=another_value']
-    assert args.master == 'm4.large'
-    assert args.release_label == 'emr-4.7.0'
-    assert args.submit_args == ['--jars',
-                                '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
-    assert args.uploads == ['examples/dir', 'examples/episodes.avro']
-    assert args.tags == ['Name=MyName', 'CostCenter=MyCostCenter']
-    assert args.bootstrap_script == 's3://bucket/bootstrap-actions.sh'
+    args = __main__.parse_cli_args(parser, args=shlex.split(cmd_args_str))
+    assert args['app'] == 'episodes.py'
+    assert args['s3_bucket'] == 'my-bucket'
+    assert args['app_args'] == ['--input', '/home/hadoop/episodes.avro']
+    assert args['debug'] is True
+    assert args['defaults'] == ['key=value', 'another_key=another_value']
+    assert args['instance_type_master'] == 'm4.large'
+    assert args['release_label'] == 'emr-4.7.0'
+    assert args['submit_args'] == ['--jars',
+                                   '/home/hadoop/lib/spark-avro_2.10-2.0.2.jar']
+    assert args['uploads'] == ['examples/dir', 'examples/episodes.avro']
+    assert args['tags'] == ['Name=MyName', 'CostCenter=MyCostCenter']
+    assert args['bootstrap_script'] == 's3://bucket/bootstrap-actions.sh'

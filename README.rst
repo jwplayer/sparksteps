@@ -29,29 +29,32 @@ CLI Options
       app                           main spark script for submit spark (required)
       app-args:                     arguments passed to main spark script
       aws-region:                   AWS region name
-      bid-price:                    specify bid price for task 
+      bid-price:                    specify bid price for task nodes
       bootstrap-action:             include a bootstrap script (s3 path)
       cluster-id:                   job flow id of existing cluster to submit to
       debug:                        allow debugging of cluster
       defaults:                     spark-defaults configuration of the form key1=val1 key=val2
-      dynamic-pricing:              allow sparksteps to determine best bid price for task nodes
+      dynamic-pricing-master:       use spot pricing for the master nodes.
+      dynamic-pricing-core:         use spot pricing for the core nodes.
+      dynamic-pricing-task:         use spot pricing for the task nodes.
       ec2-key:                      name of the Amazon EC2 key pair
       ec2-subnet-id:                Amazon VPC subnet id
       help (-h):                    argparse help
-      keep-alive:                   Keep EMR cluster alive when no steps
-      master:                       instance type of of master host (default='m4.large')
+      keep-alive:                   whether to keep the EMR cluster alive when there are no steps
+      log-level (-l):               logging level (default=INFO)
+      instance-type-master:         instance type of of master host (default='m4.large')
+      instance-type-core:           instance type of the core nodes, must be set when num-core > 0
+      instance-type-task:           instance type of the task nodes, must be set when num-task > 0
+      maximize-resource-allocation: sets the maximizeResourceAllocation property for the cluster to true when supplied.
       name:                         specify cluster name
       num-core:                     number of core nodes
       num-task:                     number of task nodes
       release-label:                EMR release label
       s3-bucket:                    name of s3 bucket to upload spark file (required)
       s3-dist-cp:                   s3-dist-cp step after spark job is done
-      slave:                        instance type of of slave hosts
       submit-args:                  arguments passed to spark-submit
-      sparksteps-conf:              use sparksteps Spark conf
       tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
       uploads:                      files to upload to /home/hadoop/ in master instance
-      maximize-resource-allocation: Sets the maximizeResourceAllocation property for the cluster to true when supplied.
 
 Example
 -------
@@ -87,8 +90,8 @@ and run the Spark job. This is especially helpful for debugging.
 Dynamic Pricing (alpha)
 -----------------------
 
-Use CLI option ``--dynamic-pricing`` to allow sparksteps to dynamically
-determine best bid price for EMR task notes.
+Use CLI option ``--dynamic-pricing-<instance-type>`` to allow sparksteps to dynamically
+determine the best bid price for EMR instances within a certain instance group.
 
 Currently the algorithm looks back at spot history over the last 12
 hours and calculates ``min(50% * on_demand_price, max_spot_price)`` to
