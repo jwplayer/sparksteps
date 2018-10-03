@@ -111,6 +111,51 @@ def test_emr_cluster_config_with_bootstrap():
     client.run_job_flow(**config)
 
 
+def test_emr_spot_cluster():
+    config = emr_config('emr-5.2.0',
+                        instance_type_master='m4.large',
+                        keep_alive=False,
+                        instance_type_core='c3.8xlarge',
+                        instance_type_task='c3.8xlarge',
+                        num_core=2,
+                        num_task=4,
+                        bid_price_master='0.05',
+                        bid_price_core='0.25',
+                        bid_price_task='0.1',
+                        name="Test SparkSteps",
+                        bootstrap_script='s3://bucket/bootstrap-actions.sh')
+    assert config == {'Instances':
+                          {'InstanceGroups': [{'InstanceCount': 1,  # NOQA: E127
+                                               'InstanceRole': 'MASTER',
+                                               'InstanceType': 'm4.large',
+                                               'Market': 'SPOT',
+                                               'BidPrice': '0.05',
+                                               'Name': 'Master Node'},
+                                              {'BidPrice': '0.25',
+                                               'InstanceCount': 2,
+                                               'InstanceRole': 'CORE',
+                                               'InstanceType': 'c3.8xlarge',
+                                               'Market': 'SPOT',
+                                               'Name': 'Core Nodes'},
+                                              {'BidPrice': '0.1',
+                                               'InstanceCount': 4,
+                                               'InstanceRole': 'TASK',
+                                               'InstanceType': 'c3.8xlarge',
+                                               'Market': 'SPOT',
+                                               'Name': 'Task Nodes'}],
+                           'KeepJobFlowAliveWhenNoSteps': False,
+                           'TerminationProtected': False
+                           },
+                      'Applications': [{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+                      'BootstrapActions': [{'Name': 'bootstrap',
+                                            'ScriptBootstrapAction': {'Path': 's3://bucket/bootstrap-actions.sh'}}],
+                      'Name': 'Test SparkSteps',
+                      'JobFlowRole': 'EMR_EC2_DefaultRole',
+                      'ReleaseLabel': 'emr-5.2.0',
+                      'VisibleToAllUsers': True,
+                      'ServiceRole': 'EMR_DefaultRole'}
+
+
 @moto.mock_s3
 def test_setup_steps():
     s3 = boto3.resource('s3', region_name=AWS_REGION_NAME)
