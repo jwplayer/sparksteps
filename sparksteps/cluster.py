@@ -41,21 +41,13 @@ def parse_conf(raw_conf_list):
     return conf_dict
 
 
-def emr_config(release_label, instance_type_master, keep_alive=False, **kw):
+def emr_config(release_label, keep_alive=False, **kw):
     timestamp = datetime.datetime.now().replace(microsecond=0)
     config = dict(
         Name="{} SparkStep Task [{}]".format(username, timestamp),
         ReleaseLabel=release_label,
         Instances={
-            'InstanceGroups': [
-                {
-                    'Name': 'Master Node',
-                    'Market': 'ON_DEMAND',
-                    'InstanceRole': 'MASTER',
-                    'InstanceType': instance_type_master,
-                    'InstanceCount': 1,
-                },
-            ],
+            'InstanceGroups': [],
             'KeepJobFlowAliveWhenNoSteps': keep_alive,
             'TerminationProtected': False,
         },
@@ -65,44 +57,31 @@ def emr_config(release_label, instance_type_master, keep_alive=False, **kw):
         ServiceRole='EMR_DefaultRole',
     )
 
-    # Core Node configuration
-    if kw.get('num_core'):
-        if not kw.get('instance_type_core'):
-            raise ValueError('Core nodes specified without instance type.')
+    for instance_group in ('master', 'core', 'task'):
+        num_instances = kw.get('num_{}'.format(instance_group), 0)
+        if instance_group != 'master' and not num_instances:
+            # We don't need this instance group.
+            continue
 
-        core_node_config = {
-            'Name': 'Core Nodes',
+        instance_type = kw.get('instance_type_{}'.format(instance_group))
+        if not instance_type:
+            raise ValueError('{} nodes specified without instance type.'.format(
+                instance_group.capitalize()))
+
+        instance_group_config = {
+            'Name': '{} Node{}'.format(instance_group.capitalize(),
+                                       's' if instance_group != 'master' else ''),
             'Market': 'ON_DEMAND',
-            'InstanceRole': 'CORE',
-            'InstanceType': kw['instance_type_core'],
-            'InstanceCount': kw['num_core']
+            'InstanceRole': instance_group.upper(),
+            'InstanceType': instance_type,
+            'InstanceCount': 1 if instance_group == 'master' else num_instances
         }
 
-        bid_price = kw.get('bid_price_core')
+        bid_price = kw.get('bid_price_{}'.format(instance_group))
         if bid_price:
-            # Use spot pricing for Core Nodes.
-            core_node_config['Market'] = 'SPOT'
-            core_node_config['BidPrice'] = bid_price
-        config['Instances']['InstanceGroups'].append(core_node_config)
-
-    # Task Node Configuration
-    if kw.get('num_task'):
-        if not kw.get('instance_type_task'):
-            raise ValueError('Task nodes specified without instance type.')
-
-        task_group_config = {
-            'Name': 'Task Nodes',
-            'Market': 'ON_DEMAND',
-            'InstanceRole': 'TASK',
-            'InstanceType': kw['instance_type_task'],
-            'InstanceCount': kw['num_task'],
-        }
-
-        bid_price = kw.get('bid_price_task')
-        if bid_price:
-            task_group_config['Market'] = 'SPOT'
-            task_group_config['BidPrice'] = bid_price
-        config['Instances']['InstanceGroups'].append(task_group_config)
+            instance_group_config['Market'] = 'SPOT'
+            instance_group_config['BidPrice'] = bid_price
+        config['Instances']['InstanceGroups'].append(instance_group_config)
 
     if kw.get('name'):
         config['Name'] = kw['name']

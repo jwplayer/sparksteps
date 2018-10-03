@@ -189,6 +189,8 @@ def determine_prices(args, ec2):
                 'dynamic_pricing', 'instance_type')
             instance_type = args[instance_type_key]
             instance_group = price_property.replace('dynamic_pricing_', '')
+            # TODO (rikheijdens): optimize by caching instance prices
+            # between instance groups?
             bid_price, is_spot = pricing.get_bid_price(ec2, instance_type)
             if is_spot:
                 logger.info("Using spot pricing with a bid price of $%.2f"
