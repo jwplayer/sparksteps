@@ -14,6 +14,14 @@ Prompt parameters:
   dynamic-pricing-master:       use spot pricing for the master nodes.
   dynamic-pricing-core:         use spot pricing for the core nodes.
   dynamic-pricing-task:         use spot pricing for the task nodes.
+  ebs-volume-size-core:         size of the EBS volume to attach to core nodes in GiB.
+  ebs-volume-type-core:         type of the EBS volume to attach to core nodes (supported: [standard, gp2, io1]).
+  ebs-volumes-per-core:         the number of EBS volumes to attach per core node.
+  ebs-optimized-core:           whether to use EBS optimized volumes for core nodes.
+  ebs-volume-size-task:         size of the EBS volume to attach to task nodes in GiB.
+  ebs-volume-type-task:         type of the EBS volume to attach to task nodes.
+  ebs-volumes-per-task:         the number of EBS volumes to attach per task node.
+  ebs-optimized-task:           whether to use EBS optimized volumes for task nodes.
   ec2-key:                      name of the Amazon EC2 key pair
   ec2-subnet-id:                Amazon VPC subnet id
   help (-h):                    argparse help
@@ -104,6 +112,17 @@ def create_parser():
     parser.add_argument('--dynamic-pricing-master', action='store_true')
     parser.add_argument('--dynamic-pricing-core', action='store_true')
     parser.add_argument('--dynamic-pricing-task', action='store_true')
+
+    # EBS configuration
+    parser.add_argument('--ebs-volume-size-core', type=int)
+    parser.add_argument('--ebs-volume-type-core', type=str, default='standard')
+    parser.add_argument('--ebs-volumes-per-core', type=int, default=1)
+    parser.add_argument('--ebs-optimized-core', action='store_true')
+
+    parser.add_argument('--ebs-volume-size-task', type=int)
+    parser.add_argument('--ebs-volume-type-task', type=str, default='standard')
+    parser.add_argument('--ebs-volumes-per-task', type=int, default=1)
+    parser.add_argument('--ebs-optimized-task', action='store_true')
 
     # Deprecated arguments
     parser.add_argument('--master')

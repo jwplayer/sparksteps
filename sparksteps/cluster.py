@@ -81,6 +81,20 @@ def emr_config(release_label, keep_alive=False, **kw):
         if bid_price:
             instance_group_config['Market'] = 'SPOT'
             instance_group_config['BidPrice'] = bid_price
+
+        ebs_volume_size = kw.get('ebs_volume_size_{}'.format(instance_group), 0)
+        if ebs_volume_size > 0:
+            ebs_configuration = {
+                'EbsBlockDeviceConfigs': [{
+                    'VolumeSpecification': {
+                        'VolumeType': kw.get('ebs_volume_type_{}'.format(instance_group)),
+                        'SizeInGB': ebs_volume_size
+                    },
+                    'VolumesPerInstance': kw.get('ebs_volumes_per_{}'.format(instance_group), 1)
+                }],
+                'EbsOptimized': kw.get('ebs_optimized_{}'.format(instance_group), False)
+            }
+            instance_group_config['EbsConfiguration'] = ebs_configuration
         config['Instances']['InstanceGroups'].append(instance_group_config)
 
     if kw.get('name'):
