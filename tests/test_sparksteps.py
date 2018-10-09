@@ -156,6 +156,77 @@ def test_emr_spot_cluster():
                       'ServiceRole': 'EMR_DefaultRole'}
 
 
+def test_emr_ebs_storage():
+    config = emr_config('emr-5.2.0',
+                        instance_type_master='m4.large',
+                        keep_alive=False,
+                        instance_type_core='c3.8xlarge',
+                        instance_type_task='c3.8xlarge',
+                        ebs_volume_size_core=100,
+                        ebs_volume_type_core='gp2',
+                        ebs_volumes_per_core=2,
+                        ebs_volume_size_task=10,
+                        ebs_volume_type_task='io1',
+                        ebs_optimized_task=True,
+                        num_core=2,
+                        num_task=4,
+                        bid_price_master='0.05',
+                        bid_price_core='0.25',
+                        bid_price_task='0.1',
+                        name="Test SparkSteps",
+                        bootstrap_script='s3://bucket/bootstrap-actions.sh')
+    assert config == {'Instances':
+                          {'InstanceGroups': [{'InstanceCount': 1,  # NOQA: E127
+                                               'InstanceRole': 'MASTER',
+                                               'InstanceType': 'm4.large',
+                                               'Market': 'SPOT',
+                                               'BidPrice': '0.05',
+                                               'Name': 'Master Node'},
+                                              {'BidPrice': '0.25',
+                                               'InstanceCount': 2,
+                                               'InstanceRole': 'CORE',
+                                               'InstanceType': 'c3.8xlarge',
+                                               'Market': 'SPOT',
+                                               'Name': 'Core Nodes',
+                                               'EbsConfiguration': {
+                                               'EbsBlockDeviceConfigs': [{
+                                                    'VolumeSpecification': {
+                                                        'VolumeType': 'gp2',
+                                                        'SizeInGB': 100
+                                                    },
+                                                    'VolumesPerInstance': 2
+                                                }],
+                                                'EbsOptimized': False
+                                               }},
+                                              {'BidPrice': '0.1',
+                                               'InstanceCount': 4,
+                                               'InstanceRole': 'TASK',
+                                               'InstanceType': 'c3.8xlarge',
+                                               'Market': 'SPOT',
+                                               'Name': 'Task Nodes',
+                                               'EbsConfiguration': {
+                                               'EbsBlockDeviceConfigs': [{
+                                                    'VolumeSpecification': {
+                                                        'VolumeType': 'io1',
+                                                        'SizeInGB': 10
+                                                    },
+                                                    'VolumesPerInstance': 1
+                                                }],
+                                                'EbsOptimized': True
+                                               }}],
+                           'KeepJobFlowAliveWhenNoSteps': False,
+                           'TerminationProtected': False
+                           },
+                      'Applications': [{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+                      'BootstrapActions': [{'Name': 'bootstrap',
+                                            'ScriptBootstrapAction': {'Path': 's3://bucket/bootstrap-actions.sh'}}],
+                      'Name': 'Test SparkSteps',
+                      'JobFlowRole': 'EMR_EC2_DefaultRole',
+                      'ReleaseLabel': 'emr-5.2.0',
+                      'VisibleToAllUsers': True,
+                      'ServiceRole': 'EMR_DefaultRole'}
+
+
 @moto.mock_s3
 def test_setup_steps():
     s3 = boto3.resource('s3', region_name=AWS_REGION_NAME)
