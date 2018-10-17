@@ -14,7 +14,6 @@ docker==3.5.0
 docker-pycreds==0.3.0
 docutils==0.12
 ecdsa==0.13
-Flask==0.11.1
 future==0.16.0
 futures==3.0.5
 httpretty==0.8.10
