@@ -83,7 +83,7 @@ def emr_config(release_label, keep_alive=False, **kw):
             instance_group_config['BidPrice'] = bid_price
 
         ebs_volume_size = kw.get('ebs_volume_size_{}'.format(instance_group), 0)
-        if ebs_volume_size > 0:
+        if ebs_volume_size:
             ebs_configuration = {
                 'EbsBlockDeviceConfigs': [{
                     'VolumeSpecification': {

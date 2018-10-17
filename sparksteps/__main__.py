@@ -106,6 +106,7 @@ def create_parser():
     parser.add_argument('--tags', nargs='*')
     parser.add_argument('--uploads', nargs='*')
     parser.add_argument('--maximize-resource-allocation', action='store_true')
+    # TODO: wrap lines below in a for loop?
     parser.add_argument('--instance-type-master', default='m4.large')
     parser.add_argument('--instance-type-core')
     parser.add_argument('--instance-type-task')
@@ -114,12 +115,12 @@ def create_parser():
     parser.add_argument('--dynamic-pricing-task', action='store_true')
 
     # EBS configuration
-    parser.add_argument('--ebs-volume-size-core', type=int)
+    parser.add_argument('--ebs-volume-size-core', type=int, default=0)
     parser.add_argument('--ebs-volume-type-core', type=str, default='standard')
     parser.add_argument('--ebs-volumes-per-core', type=int, default=1)
     parser.add_argument('--ebs-optimized-core', action='store_true')
 
-    parser.add_argument('--ebs-volume-size-task', type=int)
+    parser.add_argument('--ebs-volume-size-task', type=int, default=0)
     parser.add_argument('--ebs-volume-type-task', type=str, default='standard')
     parser.add_argument('--ebs-volumes-per-task', type=int, default=1)
     parser.add_argument('--ebs-optimized-task', action='store_true')
