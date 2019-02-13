@@ -107,8 +107,6 @@ determine bid price. That said, if the current spot price is over 80% of
 the on-demand cost, then on-demand instances are used to be
 conservative.
 
-Note: code depends on `ec2instances <http://www.ec2instances.info/>`__
-for getting demand price.
 
 Testing
 -------
