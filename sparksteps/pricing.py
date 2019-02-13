@@ -41,7 +41,6 @@ def get_demand_price(pricing_client, instance_type, region='US East (N. Virginia
 
     filter_template = EC2_PRICE_FILTER_TEMPLATE.format(
         operating_sytem=operating_system, instance_type=instance_type, region=region)
-    print(json.loads(filter_template))
     data = pricing_client.get_products(ServiceCode='AmazonEC2', Filters=json.loads(filter_template))
     on_demand = json.loads(data['PriceList'][0])['terms']['OnDemand']
     index_1 = list(on_demand)[0]
