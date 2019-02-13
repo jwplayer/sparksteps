@@ -30,6 +30,7 @@ setup(
         'pytest',
         'pytest-flake8',
         'moto',
+        'google-compute-engine'
     ],
     include_package_data=True,
     zip_safe=False,
