@@ -6,30 +6,47 @@ import itertools
 import logging
 import collections
 
-from bs4 import BeautifulSoup
-from six.moves.urllib.request import urlopen
-
 logger = logging.getLogger(__name__)
 
-EC2_INSTANCES_INFO_URL = "http://www.ec2instances.info/"
 SPOT_DEMAND_THRESHOLD_FACTOR = 0.8
 SPOT_PRICE_LOOKBACK = 12  # hours
 
 Zone = collections.namedtuple('Zone', 'name max min mean current')
 Spot = collections.namedtuple('Spot', 'availability_zone timestamp price')
 
+EC2_PRICE_FILTER_TEMPLATE = '''
+[
+    {{"Field": "tenancy", "Value": "shared", "Type": "TERM_MATCH"}},
+    {{"Field": "operatingSystem", "Value": "{operating_sytem}", "Type": "TERM_MATCH"}},
+    {{"Field": "preInstalledSw", "Value": "NA", "Type": "TERM_MATCH"}},
+    {{"Field": "instanceType", "Value": "{instance_type}", "Type": "TERM_MATCH"}},
+    {{"Field": "location", "Value": "{region}", "Type": "TERM_MATCH"}},
+    {{"Field": "licenseModel", "Value": "No License required", "Type": "TERM_MATCH"}}
+]
+'''
 
-def get_demand_price(aws_region, instance_type):
-    """Get AWS instance demand price.
 
-    >>> print(get_demand_price('us-east-1', 'm4.2xlarge'))
+def get_demand_price(pricing_client, instance_type, region='US East (N. Virginia)', operating_system='Linux'):
+    """Retrieves the on-demand price for a particular EC2 instance type in the specified region.
+
+    Args:
+        pricing_client: Boto3 Pricing client.
+        instance_type (str): The type of the instance.
+        region: The region to get the price for, this must be the human-readable name of the region!
+        operating_system: The operating system of the instance, this must be the human-readable name!
     """
-    soup = BeautifulSoup(urlopen(EC2_INSTANCES_INFO_URL), 'html.parser')
-    table = soup.find('table', {'id': 'data'})
-    row = table.find(id=instance_type)
-    td = row.find('td', {'class': 'cost-ondemand-linux'})
-    region_prices = json.loads(td['data-pricing'])
-    return float(region_prices[aws_region])
+    if '-' in region:
+        # TODO (rikheijdens): Perhaps we could map these using information from botocore/data/endpoints.json.
+        raise ValueError('get_demand_price() requires the human-readable name of the region to be supplied.')
+
+    filter_template = EC2_PRICE_FILTER_TEMPLATE.format(
+        operating_sytem=operating_system, instance_type=instance_type, region=region)
+    print(json.loads(filter_template))
+    data = pricing_client.get_products(ServiceCode='AmazonEC2', Filters=json.loads(filter_template))
+    on_demand = json.loads(data['PriceList'][0])['terms']['OnDemand']
+    index_1 = list(on_demand)[0]
+    index_2 = list(on_demand[index_1]['priceDimensions'])[0]
+    return float(on_demand[index_1]['priceDimensions'][index_2]['pricePerUnit']['USD'])
 
 
 def get_spot_price_history(ec2_client, instance_type, lookback=1):
@@ -90,7 +107,7 @@ def determine_best_price(demand_price, aws_zone):
     return min(2 * aws_zone.max, demand_price * 0.5), True
 
 
-def get_bid_price(client, instance_type):
+def get_bid_price(ec2_client, pricing_client, instance_type):
     """Determine AWS bid price.
 
     Args:
@@ -105,12 +122,11 @@ def get_bid_price(client, instance_type):
         >>> client = boto3.client('ec2', region_name='us-east-1')
         >>> print(get_bid_price(client, 'm3.2xlarge'))
     """
-    aws_region = client._client_config.region_name
-    history = get_spot_price_history(client, instance_type, SPOT_PRICE_LOOKBACK)
+    history = get_spot_price_history(ec2_client, instance_type, SPOT_PRICE_LOOKBACK)
     by_zone = price_by_zone(history)
     zone_profile = get_zone_profile(by_zone)
     best_zone = min(zone_profile, key=lambda x: x.max)
-    demand_price = get_demand_price(aws_region, instance_type)
+    demand_price = get_demand_price(pricing_client, instance_type)
     bid_price, is_spot = determine_best_price(demand_price, best_zone)
     bid_price_rounded = round(bid_price, 2)  # AWS requires max 3 decimal places
     return bid_price_rounded, is_spot

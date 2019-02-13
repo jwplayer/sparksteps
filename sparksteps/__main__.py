@@ -183,7 +183,7 @@ def parse_cli_args(parser, args=None):
     return args
 
 
-def determine_prices(args, ec2):
+def determine_prices(args, ec2, pricing_client):
     """
     Checks `args` in order to determine whether spot pricing should be
      used for instance groups within the EMR cluster, and if this is the
@@ -211,7 +211,7 @@ def determine_prices(args, ec2):
             instance_group = price_property.replace('dynamic_pricing_', '')
             # TODO (rikheijdens): optimize by caching instance prices
             # between instance groups?
-            bid_price, is_spot = pricing.get_bid_price(ec2, instance_type)
+            bid_price, is_spot = pricing.get_bid_price(ec2, pricing_client, instance_type)
             if is_spot:
                 logger.info("Using spot pricing with a bid price of $%.2f"
                             " for %s instances in the %s instance group.",
@@ -241,7 +241,8 @@ def main():
     if cluster_id is None:
         logger.info("Launching cluster...")
         ec2_client = boto3.client('ec2', region_name=args_dict['aws_region'])
-        args_dict = determine_prices(args_dict, ec2_client)
+        pricing_client = boto3.client('pricing', region_name=args_dict['aws_region'])
+        args_dict = determine_prices(args_dict, ec2_client, pricing_client)
         cluster_config = cluster.emr_config(**args_dict)
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
