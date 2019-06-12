@@ -89,6 +89,7 @@ def create_parser():
     parser.add_argument('--aws-region', required=True)
     parser.add_argument('--bid-price')
     parser.add_argument('--bootstrap-script')
+    parser.add_argument('--configuration')
     parser.add_argument('--cluster-id')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--defaults', nargs='*')
@@ -244,6 +245,9 @@ def main():
         pricing_client = boto3.client('pricing', region_name=args_dict['aws_region'])
         args_dict = determine_prices(args_dict, ec2_client, pricing_client)
         cluster_config = cluster.emr_config(**args_dict)
+        with open(args_dict['configuration']) as json_file:  
+          config = json.load(json_file)
+        cluster_config["Configurations"] = config        
         response = client.run_job_flow(**cluster_config)
         cluster_id = response['JobFlowId']
         logger.info("Cluster ID: %s", cluster_id)
