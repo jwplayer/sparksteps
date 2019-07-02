@@ -111,6 +111,65 @@ def test_emr_cluster_config_with_bootstrap():
     client.run_job_flow(**config)
 
 
+@moto.mock_emr
+def test_emr_cluster_config_with_defaults():
+    config = emr_config('emr-5.2.0',
+                        instance_type_master='m4.large',
+                        keep_alive=False,
+                        instance_type_core='m4.2xlarge',
+                        instance_type_task='m4.2xlarge',
+                        num_core=1,
+                        num_task=1,
+                        bid_price_task='0.1',
+                        name="Test SparkSteps",
+                        defaults=['spark-defaults', 'spark.speculation=false',
+                                  'yarn-site', 'yarn.nodemanager.vmem-check-enabled=true'])
+    print(config['Configurations'])
+    assert config == {'Instances':
+                          {'InstanceGroups': [{'InstanceCount': 1,  # NOQA: E127
+                                               'InstanceRole': 'MASTER',
+                                               'InstanceType': 'm4.large',
+                                               'Market': 'ON_DEMAND',
+                                               'Name': 'Master Node'},
+                                              {'InstanceCount': 1,
+                                               'InstanceRole': 'CORE',
+                                               'InstanceType': 'm4.2xlarge',
+                                               'Market': 'ON_DEMAND',
+                                               'Name': 'Core Nodes'},
+                                              {'BidPrice': '0.1',
+                                               'InstanceCount': 1,
+                                               'InstanceRole': 'TASK',
+                                               'InstanceType': 'm4.2xlarge',
+                                               'Market': 'SPOT',
+                                               'Name': 'Task Nodes'}],
+                           'KeepJobFlowAliveWhenNoSteps': False,
+                           'TerminationProtected': False
+                           },
+                      'Applications': [{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+                      'Configurations': [
+                          {
+                              'Classification': 'spark-defaults',
+                              'Properties': {
+                                  'spark.speculation': 'false'
+                              }
+                          },
+                          {
+                              'Classification': 'yarn-site',
+                              'Properties': {
+                                  'yarn.nodemanager.vmem-check-enabled': 'true'
+                              }
+                          }
+                      ],
+                      'Name': 'Test SparkSteps',
+                      'JobFlowRole': 'EMR_EC2_DefaultRole',
+                      'ReleaseLabel': 'emr-5.2.0',
+                      'VisibleToAllUsers': True,
+                      'ServiceRole': 'EMR_DefaultRole'}
+
+    client = boto3.client('emr', region_name=AWS_REGION_NAME)
+    client.run_job_flow(**config)
+
+
 def test_emr_spot_cluster():
     config = emr_config('emr-5.2.0',
                         instance_type_master='m4.large',
@@ -297,7 +356,7 @@ def test_parser():
       --app-args="--input /home/hadoop/episodes.avro" \
       --num-core 1 \
       --tags Name=MyName CostCenter=MyCostCenter \
-      --defaults key=value another_key=another_value \
+      --defaults spark-defaults key=value another_key=another_value \
       --maximize-resource-allocation \
       --debug
     """
@@ -306,7 +365,7 @@ def test_parser():
     assert args['s3_bucket'] == 'my-bucket'
     assert args['app_args'] == ['--input', '/home/hadoop/episodes.avro']
     assert args['debug'] is True
-    assert args['defaults'] == ['key=value', 'another_key=another_value']
+    assert args['defaults'] == ['spark-defaults', 'key=value', 'another_key=another_value']
     assert args['instance_type_master'] == 'm4.large'
     assert args['release_label'] == 'emr-4.7.0'
     assert args['submit_args'] == ['--jars',
@@ -331,7 +390,7 @@ def test_parser_deprecated_args():
       --num-core 1 \
       --dynamic-pricing \
       --tags Name=MyName CostCenter=MyCostCenter \
-      --defaults key=value another_key=another_value \
+      --defaults spark-defaults key=value another_key=another_value \
       --maximize-resource-allocation \
       --debug
     """
@@ -340,7 +399,7 @@ def test_parser_deprecated_args():
     assert args['s3_bucket'] == 'my-bucket'
     assert args['app_args'] == ['--input', '/home/hadoop/episodes.avro']
     assert args['debug'] is True
-    assert args['defaults'] == ['key=value', 'another_key=another_value']
+    assert args['defaults'] == ['spark-defaults', 'key=value', 'another_key=another_value']
     assert args['instance_type_master'] == 'm4.4xlarge'
     assert args['instance_type_core'] == 'c3.8xlarge'
     assert args['dynamic_pricing_task'] is True
@@ -363,7 +422,7 @@ def test_parser_with_bootstrap():
       --app-args="--input /home/hadoop/episodes.avro" \
       --num-core 1 \
       --tags Name=MyName CostCenter=MyCostCenter \
-      --defaults key=value another_key=another_value \
+      --defaults spark-defaults key=value another_key=another_value \
       --bootstrap-script s3://bucket/bootstrap-actions.sh \
       --debug
     """
@@ -372,7 +431,7 @@ def test_parser_with_bootstrap():
     assert args['s3_bucket'] == 'my-bucket'
     assert args['app_args'] == ['--input', '/home/hadoop/episodes.avro']
     assert args['debug'] is True
-    assert args['defaults'] == ['key=value', 'another_key=another_value']
+    assert args['defaults'] == ['spark-defaults', 'key=value', 'another_key=another_value']
     assert args['instance_type_master'] == 'm4.large'
     assert args['release_label'] == 'emr-4.7.0'
     assert args['submit_args'] == ['--jars',
