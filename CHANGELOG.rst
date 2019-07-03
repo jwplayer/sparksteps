@@ -3,8 +3,11 @@
 Changelog
 =========
 
-- v1.0.0: Dropped support for Python 2
-- v1.0.0: `defaults` CLI parameter value schema changed to support arbitrary classifications
+v1.0.0 (2019-07-03)
+~~~~~~~~~~~~~~~~~~~
+
+* Dropped support for Python 2
+* `defaults` CLI parameter value schema changed to support arbitrary classifications
 
 Releases
 --------
