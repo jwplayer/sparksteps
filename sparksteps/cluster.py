@@ -31,14 +31,27 @@ def parse_tags(raw_tags_list):
 
 
 def parse_conf(raw_conf_list):
-    """Parse configuration items for spark-defaults."""
-    conf_dict = {}
+    """Parse configuration items."""
 
-    for raw_conf in raw_conf_list:
-        if "=" in raw_conf:
-            key, value = raw_conf.split('=', 1)
-            conf_dict[key] = value
-    return conf_dict
+    defaults = []
+    classification = None
+
+    for token in raw_conf_list:
+        if '=' in token:
+            key, value = token.split('=', 1)
+            classification['Properties'][key] = value
+        else:
+            if classification:
+                defaults.append(classification)
+            classification = {
+                'Classification': token,
+                'Properties': {}
+            }
+
+    if classification:
+        defaults.append(classification)
+
+    return defaults
 
 
 def emr_config(release_label, keep_alive=False, **kw):
@@ -109,8 +122,7 @@ def emr_config(release_label, keep_alive=False, **kw):
     if kw.get('tags'):
         config['Tags'] = parse_tags(kw['tags'])
     if kw.get('defaults'):
-        config['Configurations'] = [{'Classification': 'spark-defaults',
-                                     'Properties': parse_conf(kw['defaults'])}]
+        config['Configurations'] = parse_conf(kw['defaults'])
     if kw.get('maximize_resource_allocation'):
         configurations = config.get('Configurations', [])
         configurations.append({

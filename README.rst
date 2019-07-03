@@ -33,7 +33,7 @@ CLI Options
       bootstrap-action:             include a bootstrap script (s3 path)
       cluster-id:                   job flow id of existing cluster to submit to
       debug:                        allow debugging of cluster
-      defaults:                     spark-defaults configuration of the form key1=val1 key=val2
+      defaults:                     cluster configurations of the form "<classification1> key1=val1 key2=val2 ..."
       dynamic-pricing-master:       use spot pricing for the master nodes.
       dynamic-pricing-core:         use spot pricing for the core nodes.
       dynamic-pricing-task:         use spot pricing for the task nodes.
