@@ -5,6 +5,7 @@
 Prompt parameters:
   app                           main spark script for submit spark (required)
   app-args:                     arguments passed to main spark script
+  app-list:                     Applications to be installed on the EMR cluster (Default: Hadoop Spark)
   aws-region:                   AWS region name
   bid-price:                    specify bid price for task nodes
   bootstrap-action:             include a bootstrap script (s3 path)
@@ -25,6 +26,7 @@ Prompt parameters:
   ec2-key:                      name of the Amazon EC2 key pair
   ec2-subnet-id:                Amazon VPC subnet id
   help (-h):                    argparse help
+  jobflow-role:                 Amazon EC2 instance profile name to use (Default: EMR_EC2_DefaultRole)
   keep-alive:                   whether to keep the EMR cluster alive when there are no steps
   log-level (-l):               logging level (default=INFO)
   instance-type-master:         instance type of of master host (default='m4.large')
@@ -67,6 +69,7 @@ import boto3
 from sparksteps import steps
 from sparksteps import cluster
 from sparksteps import pricing
+from sparksteps.defaults import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE
 
 logger = logging.getLogger(__name__)
 LOGFORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -86,6 +89,7 @@ def create_parser():
 
     parser.add_argument('app', metavar='FILE')
     parser.add_argument('--app-args', type=shlex.split)
+    parser.add_argument('--app-list', nargs='*', default=DEFAULT_APP_LIST)
     parser.add_argument('--aws-region', required=True)
     parser.add_argument('--bid-price')
     parser.add_argument('--bootstrap-script')
@@ -94,6 +98,7 @@ def create_parser():
     parser.add_argument('--defaults', nargs='*')
     parser.add_argument('--ec2-key')
     parser.add_argument('--ec2-subnet-id')
+    parser.add_argument('--jobflow-role', default=DEFAULT_JOBFLOW_ROLE)
     parser.add_argument('--keep-alive', action='store_true')
     parser.add_argument('--log-level', '-l', type=str.upper, default='INFO')
     parser.add_argument('--name')

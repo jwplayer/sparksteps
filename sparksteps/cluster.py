@@ -5,6 +5,7 @@ import logging
 import datetime
 
 from sparksteps import steps
+from sparksteps.defaults import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,21 @@ def parse_conf(raw_conf_list):
     return defaults
 
 
+def parse_apps(raw_app_list):
+    """
+    Given a list of app name strings,
+    returns formatted application configuration value.
+
+    Examples:
+        >>> from pprint import pprint
+        >>> pprint(parse_apps(['hadoop', 'spark']))
+        [{'Name': 'Hadoop', 'Name': 'Spark'}]
+    """
+    return sorted(
+        [{'Name': app_name.capitalize()} for app_name in set(raw_app_list)],
+        key=lambda x: x['Name'])
+
+
 def emr_config(release_label, keep_alive=False, **kw):
     timestamp = datetime.datetime.now().replace(microsecond=0)
     config = dict(
@@ -64,9 +80,9 @@ def emr_config(release_label, keep_alive=False, **kw):
             'KeepJobFlowAliveWhenNoSteps': keep_alive,
             'TerminationProtected': False,
         },
-        Applications=[{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+        Applications=parse_apps(kw.get('app_list', DEFAULT_APP_LIST)),
         VisibleToAllUsers=True,
-        JobFlowRole='EMR_EC2_DefaultRole',
+        JobFlowRole=kw.get('jobflow_role', DEFAULT_JOBFLOW_ROLE),
         ServiceRole='EMR_DefaultRole',
     )
 
