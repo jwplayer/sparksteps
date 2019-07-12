@@ -28,6 +28,7 @@ CLI Options
     Prompt parameters:
       app                           main spark script for submit spark (required)
       app-args:                     arguments passed to main spark script
+      app-list:                     Space delimited list of applications to be installed on the EMR cluster (Default: Hadoop Spark)
       aws-region:                   AWS region name
       bid-price:                    specify bid price for task nodes
       bootstrap-action:             include a bootstrap script (s3 path)
@@ -48,6 +49,7 @@ CLI Options
       ec2-key:                      name of the Amazon EC2 key pair
       ec2-subnet-id:                Amazon VPC subnet id
       help (-h):                    argparse help
+      jobflow-role:                 Amazon EC2 instance profile name to use (Default: EMR_EC2_DefaultRole)
       keep-alive:                   whether to keep the EMR cluster alive when there are no steps
       log-level (-l):               logging level (default=INFO)
       instance-type-master:         instance type of of master host (default='m4.large')
