@@ -69,7 +69,7 @@ import boto3
 from sparksteps import steps
 from sparksteps import cluster
 from sparksteps import pricing
-from sparksteps.defaults import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE
+from sparksteps.cluster import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE
 
 logger = logging.getLogger(__name__)
 LOGFORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'

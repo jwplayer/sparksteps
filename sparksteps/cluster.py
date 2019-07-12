@@ -5,7 +5,9 @@ import logging
 import datetime
 
 from sparksteps import steps
-from sparksteps.defaults import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE
+
+DEFAULT_JOBFLOW_ROLE = 'EMR_EC2_DefaultRole'
+DEFAULT_APP_LIST = ['Hadoop', 'Spark']
 
 logger = logging.getLogger(__name__)
 
