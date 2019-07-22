@@ -6,6 +6,11 @@ Changelog
 Releases
 --------
 
+v1.1.1 (2019-07-22)
+~~~~~~~~~~~~~~~~~~~
+
+* Raise an error if one of the file or directory paths provided do not exist
+
 v1.1.0 (2019-07-13)
 ~~~~~~~~~~~~~~~~~~~
 
