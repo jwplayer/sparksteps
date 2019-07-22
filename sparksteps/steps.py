@@ -160,10 +160,14 @@ def upload_steps(s3_resource, bucket, path):
         copy_step = CopyStep(bucket, basename + '.zip')
         zip_to_s3(s3_resource, path, bucket, key=copy_step.key)
         steps.extend([copy_step, UnzipStep(path)])
-    else:
+    elif os.path.isfile(path):
         copy_step = CopyStep(bucket, basename)
         s3_resource.meta.client.upload_file(path, bucket, copy_step.key)
         steps.append(copy_step)
+    else:
+        raise FileNotFoundError(
+            '{} does not exist (does not reference a valid file or path).'
+            .format(path))
     return steps
 
 
