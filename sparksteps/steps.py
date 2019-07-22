@@ -165,7 +165,7 @@ def upload_steps(s3_resource, bucket, path):
         s3_resource.meta.client.upload_file(path, bucket, copy_step.key)
         steps.append(copy_step)
     else:
-        raise ValueError(
+        raise FileNotFoundError(
             '{} does not exist (does not reference a valid file or path).'
             .format(path))
     return steps

@@ -342,7 +342,7 @@ def test_setup_steps_non_existing_upload_file():
                     submit_args="--jars /home/hadoop/dir/test.jar".split(),
                     app_args="--input /home/hadoop/episodes.avro".split(),
                     uploads=[dne_file_path])
-    except ValueError as e:
+    except FileNotFoundError as e:
         assert str(e) == '{} does not exist (does not reference a valid file or path).'.format(dne_file_path)
         return
     assert False, 'Expected ValueError to be raised when `--uploads` parameter contains path to non-existing file or directory.'  # NOQA: E501
