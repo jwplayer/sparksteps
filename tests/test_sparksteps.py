@@ -330,6 +330,24 @@ def test_setup_steps():
          'Name': 'Run episodes.py'}]
 
 
+@moto.mock_s3
+def test_setup_steps_non_existing_upload_file():
+    s3 = boto3.resource('s3', region_name=AWS_REGION_NAME)
+    s3.create_bucket(Bucket=TEST_BUCKET)
+    dne_file_path = os.path.join(DATA_DIR, 'does_not_exist.jar')
+    try:
+        setup_steps(s3,
+                    TEST_BUCKET,
+                    EPISODES_APP,
+                    submit_args="--jars /home/hadoop/dir/test.jar".split(),
+                    app_args="--input /home/hadoop/episodes.avro".split(),
+                    uploads=[dne_file_path])
+    except ValueError as e:
+        assert str(e) == '{} does not exist (does not reference a valid file or path).'.format(dne_file_path)
+        return
+    assert False, 'Expected ValueError to be raised when `--uploads` parameter contains path to non-existing file or directory.'  # NOQA: E501
+
+
 def test_s3_dist_cp_step():
     splitted = shlex.split(
         "--s3Endpoint=s3.amazonaws.com --src=s3://mybucket/logs/j-3GYXXXXXX9IOJ/node/ --dest=hdfs:///output --srcPattern=.*[a-zA-Z,]+")  # NOQA: E501
