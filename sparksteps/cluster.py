@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Create EMR cluster."""
+import os
 import getpass
 import logging
 import datetime
@@ -135,7 +136,7 @@ def emr_config(release_label, keep_alive=False, **kw):
     if kw.get('ec2_subnet_id'):
         config['Instances']['Ec2SubnetId'] = kw['ec2_subnet_id']
     if kw.get('debug', False) and kw.get('s3_bucket'):
-        config['LogUri'] = 's3://%s/logs/sparksteps/' % kw['s3_bucket']
+        config['LogUri'] = os.path.join('s3://', kw['s3_bucket'], kw['s3_path'], 'logs/')
         config['Steps'] = [steps.DebugStep().step]
     if kw.get('tags'):
         config['Tags'] = parse_tags(kw['tags'])

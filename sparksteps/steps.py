@@ -5,8 +5,6 @@ import tempfile
 import zipfile
 
 REMOTE_DIR = '/home/hadoop/'
-S3_KEY_PREFIX = 'sparksteps/sources/'
-S3_URI_FMT = "s3://{bucket}/{key}"
 
 
 def get_basename(path):
@@ -55,8 +53,9 @@ class CmdStep(object):
 
 
 class CopyStep(CmdStep):
-    def __init__(self, bucket, filename):
+    def __init__(self, bucket, path, filename):
         self.bucket = bucket
+        self.path = path
         self.filename = filename
 
     @property
@@ -69,11 +68,11 @@ class CopyStep(CmdStep):
 
     @property
     def key(self):
-        return S3_KEY_PREFIX + self.filename
+        return os.path.join(self.path, 'sources/', self.filename)
 
     @property
     def s3_uri(self):
-        return S3_URI_FMT.format(bucket=self.bucket, key=self.key)
+        return os.path.join('s3://', self.bucket, self.key)
 
 
 class DebugStep(CmdStep):
@@ -152,33 +151,33 @@ class S3DistCp(CmdStep):
         return ['s3-dist-cp'] + self.s3_dist_cp
 
 
-def upload_steps(s3_resource, bucket, path):
+def upload_steps(s3_resource, bucket, bucket_path, src_path):
     """Upload files to S3 and get steps."""
     steps = []
-    basename = get_basename(path)
-    if os.path.isdir(path):  # zip directory
-        copy_step = CopyStep(bucket, basename + '.zip')
-        zip_to_s3(s3_resource, path, bucket, key=copy_step.key)
-        steps.extend([copy_step, UnzipStep(path)])
-    elif os.path.isfile(path):
-        copy_step = CopyStep(bucket, basename)
-        s3_resource.meta.client.upload_file(path, bucket, copy_step.key)
+    basename = get_basename(src_path)
+    if os.path.isdir(src_path):  # zip directory
+        copy_step = CopyStep(bucket, bucket_path, basename + '.zip')
+        zip_to_s3(s3_resource, src_path, bucket, key=copy_step.key)
+        steps.extend([copy_step, UnzipStep(src_path)])
+    elif os.path.isfile(src_path):
+        copy_step = CopyStep(bucket, bucket_path, basename)
+        s3_resource.meta.client.upload_file(src_path, bucket, copy_step.key)
         steps.append(copy_step)
     else:
         raise FileNotFoundError(
             '{} does not exist (does not reference a valid file or path).'
-            .format(path))
+            .format(src_path))
     return steps
 
 
-def setup_steps(s3, bucket, app_path, submit_args=None, app_args=None,
+def setup_steps(s3, bucket, bucket_path, app_path, submit_args=None, app_args=None,
                 uploads=None, s3_dist_cp=None):
     cmd_steps = []
     paths = uploads or []
     paths.append(app_path)
 
-    for path in paths:
-        cmd_steps.extend(upload_steps(s3, bucket, path))
+    for src_path in paths:
+        cmd_steps.extend(upload_steps(s3, bucket, bucket_path, src_path))
 
     cmd_steps.append(SparkStep(app_path, submit_args, app_args))
 

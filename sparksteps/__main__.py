@@ -38,6 +38,7 @@ Prompt parameters:
   num-task:                     number of task nodes
   release-label:                EMR release label
   s3-bucket:                    name of s3 bucket to upload spark file (required)
+  s3-path:                      path (key prefix) within s3-bucket to use when uploading spark file (optional)
   s3-dist-cp:                   s3-dist-cp step after spark job is done
   submit-args:                  arguments passed to spark-submit
   tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
@@ -106,6 +107,7 @@ def create_parser():
     parser.add_argument('--num-task', type=int)
     parser.add_argument('--release-label', required=True)
     parser.add_argument('--s3-bucket', required=True)
+    parser.add_argument('--s3-path', default='sparksteps/')
     parser.add_argument('--s3-dist-cp', type=shlex.split)
     parser.add_argument('--submit-args', type=shlex.split)
     parser.add_argument('--tags', nargs='*')
@@ -185,6 +187,11 @@ def parse_cli_args(parser, args=None):
     # Alias 'dynamic-pricing' -> 'dynamic-pricing-task'.
     args = warn_and_override(args, 'dynamic_pricing', ['dynamic_pricing_task'])
 
+    # Perform sanitization on any CLI arguments
+    if args['s3_path'] and args['s3_path'].startswith('/'):
+        raise ValueError(
+            'Provided value for s3-path "{S3_PATH}" cannot have leading "/" character.'.format(args.s3_path))
+
     return args
 
 
@@ -255,6 +262,7 @@ def main():
 
     emr_steps = steps.setup_steps(s3,
                                   args_dict['s3_bucket'],
+                                  args_dict['s3_path'],
                                   args_dict['app'],
                                   args_dict['submit_args'],
                                   args_dict['app_args'],

@@ -61,6 +61,7 @@ CLI Options
       num-task:                     number of task nodes
       release-label:                EMR release label
       s3-bucket:                    name of s3 bucket to upload spark file (required)
+      s3-path:                      path within s3-bucket to use when writing assets (optional)
       s3-dist-cp:                   s3-dist-cp step after spark job is done
       submit-args:                  arguments passed to spark-submit
       tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
