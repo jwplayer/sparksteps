@@ -38,7 +38,7 @@ Prompt parameters:
   num-task:                     number of task nodes
   release-label:                EMR release label
   s3-bucket:                    name of s3 bucket to upload spark file (required)
-  s3-path:                      path (key prefix) within s3-bucket to use when uploading spark file (optional)
+  s3-path:                      path (key prefix) within s3-bucket to use when uploading spark file
   s3-dist-cp:                   s3-dist-cp step after spark job is done
   submit-args:                  arguments passed to spark-submit
   tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
@@ -142,7 +142,7 @@ def parse_cli_args(parser, args=None):
     # Perform sanitization on any arguments
     if args['s3_path'] and args['s3_path'].startswith('/'):
         raise ValueError(
-            'Provided value for s3-path "{S3_PATH}" cannot have leading "/" character.'.format(args.s3_path))
+            'Provided value for s3-path "{S3_PATH}" cannot have leading "/" character.'.format(args['s3_path']))
 
     return args
 
