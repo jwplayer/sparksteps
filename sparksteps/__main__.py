@@ -38,6 +38,7 @@ Prompt parameters:
   num-task:                     number of task nodes
   release-label:                EMR release label
   s3-bucket:                    name of s3 bucket to upload spark file (required)
+  s3-path:                      path (key prefix) within s3-bucket to use when uploading spark file
   s3-dist-cp:                   s3-dist-cp step after spark job is done
   submit-args:                  arguments passed to spark-submit
   tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
@@ -59,7 +60,6 @@ Examples:
 from __future__ import print_function
 
 import json
-import os
 import shlex
 import logging
 import argparse
@@ -73,12 +73,6 @@ from sparksteps.cluster import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE
 
 logger = logging.getLogger(__name__)
 LOGFORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
-
-
-def is_valid_file(parser, arg):
-    if not os.path.exists(arg):
-        parser.error("The file %s does not exist!" % arg)
-    return arg
 
 
 def create_parser():
@@ -106,6 +100,7 @@ def create_parser():
     parser.add_argument('--num-task', type=int)
     parser.add_argument('--release-label', required=True)
     parser.add_argument('--s3-bucket', required=True)
+    parser.add_argument('--s3-path', default='sparksteps/')
     parser.add_argument('--s3-dist-cp', type=shlex.split)
     parser.add_argument('--submit-args', type=shlex.split)
     parser.add_argument('--tags', nargs='*')
@@ -140,50 +135,14 @@ def create_parser():
 
 def parse_cli_args(parser, args=None):
     """
-    Utilizes `parser` to parse command line variables and logs
-     warnings for deprecated arguments.
+    Utilizes `parser` to parse command line variables and logs.
     """
-    def warn_deprecated_arg(argument, replacement):
-        logger.warning(
-            "Argument '--%s' has been deprecated in favor of '--%s'. "
-            "Support for '--%s' will be removed entirely in a future version.",
-            argument, replacement, argument)
-
-    def warn_deprecated_arg_overrides(argument, replacement):
-        logger.warning(
-            "Both deprecated argument '--%s' has been defined and replacement"
-            " argument '--%s'. Using '--%s'.",
-            argument, replacement, replacement)
-
-    def warn_and_override(args, argument, overrides, force_override=False):
-        if args.get(argument):
-            args = args.copy()
-            for replacement in overrides:
-                warn_deprecated_arg(argument, replacement.replace('_', '-'))
-                if not args.get(replacement) or force_override:
-                    args[replacement] = args.get(argument)
-                else:
-                    warn_deprecated_arg_overrides(argument, replacement)
-            del args[argument]
-        return args
-
     args = vars(parser.parse_args(args))
 
-    # Check whether any deprecated arguments were used,
-    # and throw a warning if this was the case.
-
-    # Alias 'master' -> 'instance-type-master'.
-    # 'master' always overrides 'instance-type-master' in order to guarantee backwards compatibility.
-    args = warn_and_override(args, 'master', ['instance_type_master'], force_override=True)
-    # Alias 'slave' -> 'instance-type-core', 'instance-type-task'.
-    # '--slave' has been replaced by two arguments:
-    #   '--instance-type-core': used to specify the instance type of core nodes.
-    #   '--instance-type-task': used to specify the instance type of task nodes.
-    # The newer version requires the caller to be more explicit about what
-    # instances should be used.
-    args = warn_and_override(args, 'slave', ['instance_type_core', 'instance_type_task'])
-    # Alias 'dynamic-pricing' -> 'dynamic-pricing-task'.
-    args = warn_and_override(args, 'dynamic_pricing', ['dynamic_pricing_task'])
+    # Perform sanitization on any arguments
+    if args['s3_path'] and args['s3_path'].startswith('/'):
+        raise ValueError(
+            'Provided value for s3-path "{S3_PATH}" cannot have leading "/" character.'.format(args['s3_path']))
 
     return args
 
@@ -255,6 +214,7 @@ def main():
 
     emr_steps = steps.setup_steps(s3,
                                   args_dict['s3_bucket'],
+                                  args_dict['s3_path'],
                                   args_dict['app'],
                                   args_dict['submit_args'],
                                   args_dict['app_args'],

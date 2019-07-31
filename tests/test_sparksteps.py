@@ -10,6 +10,7 @@ from sparksteps.cluster import emr_config
 from sparksteps.steps import setup_steps, S3DistCp
 
 TEST_BUCKET = 'sparksteps-test'
+TEST_BUCKET_PATH = 'sparksteps/'
 AWS_REGION_NAME = 'us-east-1'
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -293,6 +294,7 @@ def test_setup_steps():
     s3.create_bucket(Bucket=TEST_BUCKET)
     steps = (setup_steps(s3,
                          TEST_BUCKET,
+                         TEST_BUCKET_PATH,
                          EPISODES_APP,
                          submit_args="--jars /home/hadoop/dir/test.jar".split(),
                          app_args="--input /home/hadoop/episodes.avro".split(),
@@ -338,6 +340,7 @@ def test_setup_steps_non_existing_upload_file():
     try:
         setup_steps(s3,
                     TEST_BUCKET,
+                    TEST_BUCKET_PATH,
                     EPISODES_APP,
                     submit_args="--jars /home/hadoop/dir/test.jar".split(),
                     app_args="--input /home/hadoop/episodes.avro".split(),
@@ -346,6 +349,50 @@ def test_setup_steps_non_existing_upload_file():
         assert str(e) == '{} does not exist (does not reference a valid file or path).'.format(dne_file_path)
         return
     assert False, 'Expected ValueError to be raised when `--uploads` parameter contains path to non-existing file or directory.'  # NOQA: E501
+
+
+@moto.mock_s3
+def test_setup_steps_with_bucket_path():
+    s3 = boto3.resource('s3', region_name=AWS_REGION_NAME)
+    s3.create_bucket(Bucket=TEST_BUCKET)
+    steps = (setup_steps(s3,
+                         TEST_BUCKET,
+                         'custom/path/prefix/',
+                         EPISODES_APP,
+                         submit_args="--jars /home/hadoop/dir/test.jar".split(),
+                         app_args="--input /home/hadoop/episodes.avro".split(),
+                         uploads=[LIB_DIR, EPISODES_AVRO])
+             )
+    assert steps == [
+        {'HadoopJarStep': {'Jar': 'command-runner.jar',
+                           'Args': ['aws', 's3', 'cp',
+                                    's3://sparksteps-test/custom/path/prefix/sources/dir.zip',
+                                    '/home/hadoop/']},
+         'ActionOnFailure': 'CANCEL_AND_WAIT',
+         'Name': 'Copy dir.zip'},
+        {'HadoopJarStep': {'Jar': 'command-runner.jar',
+                           'Args': ['unzip', '-o', '/home/hadoop/dir.zip',
+                                    '-d', '/home/hadoop/dir']},
+         'ActionOnFailure': 'CANCEL_AND_WAIT',
+         'Name': 'Unzip dir.zip'},
+        {'HadoopJarStep': {'Jar': 'command-runner.jar',
+                           'Args': ['aws', 's3', 'cp',
+                                    's3://sparksteps-test/custom/path/prefix/sources/episodes.avro',
+                                    '/home/hadoop/']},
+         'ActionOnFailure': 'CANCEL_AND_WAIT',
+         'Name': 'Copy episodes.avro'},
+        {'HadoopJarStep': {'Jar': 'command-runner.jar',
+                           'Args': ['aws', 's3', 'cp',
+                                    's3://sparksteps-test/custom/path/prefix/sources/episodes.py',
+                                    '/home/hadoop/']},
+         'ActionOnFailure': 'CANCEL_AND_WAIT', 'Name': 'Copy episodes.py'},
+        {'HadoopJarStep': {'Jar': 'command-runner.jar',
+                           'Args': ['spark-submit', '--jars',
+                                    '/home/hadoop/dir/test.jar',
+                                    '/home/hadoop/episodes.py', '--input',
+                                    '/home/hadoop/episodes.avro']},
+         'ActionOnFailure': 'CANCEL_AND_WAIT',
+         'Name': 'Run episodes.py'}]
 
 
 def test_s3_dist_cp_step():
