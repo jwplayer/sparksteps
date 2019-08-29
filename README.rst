@@ -66,6 +66,7 @@ CLI Options
       submit-args:                  arguments passed to spark-submit
       tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
       uploads:                      files to upload to /home/hadoop/ in master instance
+      wait:                         poll until all steps are complete (or error)
 
 Example
 -------

@@ -19,7 +19,8 @@ def test_parser():
       --tags Name=MyName CostCenter=MyCostCenter \
       --defaults spark-defaults key=value another_key=another_value \
       --maximize-resource-allocation \
-      --debug
+      --debug \
+      --wait
     """
     args = __main__.parse_cli_args(parser, args=shlex.split(cmd_args_str))
     assert args['app'] == 'episodes.py'
@@ -37,6 +38,7 @@ def test_parser():
     assert args['tags'] == ['Name=MyName', 'CostCenter=MyCostCenter']
     assert args['maximize_resource_allocation'] is True
     assert args['num_core'] == 1
+    assert args['wait'] == 150
 
 
 def test_parser_with_bootstrap():

@@ -19,7 +19,8 @@ setup(
     keywords='aws emr pyspark spark boto'.split(),
     license='Apache License 2.0',
     install_requires=[
-        'boto3>=1.3.1'
+        'boto3>=1.3.1',
+        'polling==0.3.0'
     ],
     setup_requires=[
         'pytest-runner',

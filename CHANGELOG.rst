@@ -6,6 +6,14 @@ Changelog
 Releases
 --------
 
+v2.1.0 (2019-08-27)
+~~~~~~~~~~~~~~~~~~~
+
+* Add `wait` CLI option. When `--wait` is passed, waits for EMR cluster steps to complete before application exits, 
+sleeping 150 seconds (default) between each poll attempt. An optional integer value can be passed to specify the polling
+interval to use, in seconds.
+
+
 v2.0.0 (2019-07-31)
 ~~~~~~~~~~~~~~~~~~~
 

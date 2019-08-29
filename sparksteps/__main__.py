@@ -43,6 +43,7 @@ Prompt parameters:
   submit-args:                  arguments passed to spark-submit
   tags:                         EMR cluster tags of the form "key1=value1 key2=value2"
   uploads:                      files to upload to /home/hadoop/ in master instance
+  wait:                         poll until all steps are complete (or error)
 
 Examples:
   sparksteps examples/episodes.py \
@@ -70,9 +71,11 @@ from sparksteps import steps
 from sparksteps import cluster
 from sparksteps import pricing
 from sparksteps.cluster import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE
+from sparksteps.poll import wait_for_step_complete
 
 logger = logging.getLogger(__name__)
 LOGFORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+DEFAULT_SLEEP_INTERVAL_SECONDS = 150
 
 
 def create_parser():
@@ -125,6 +128,9 @@ def create_parser():
     parser.add_argument('--ebs-volumes-per-task', type=int, default=1)
     parser.add_argument('--ebs-optimized-task', action='store_true')
 
+    # Wait configuration
+    parser.add_argument('--wait', type=int, nargs='?', default=False)
+
     # Deprecated arguments
     parser.add_argument('--master')
     parser.add_argument('--slave')
@@ -143,6 +149,9 @@ def parse_cli_args(parser, args=None):
     if args['s3_path'] and args['s3_path'].startswith('/'):
         raise ValueError(
             'Provided value for s3-path "{S3_PATH}" cannot have leading "/" character.'.format(args['s3_path']))
+
+    if args['wait'] is None:
+        args['wait'] = DEFAULT_SLEEP_INTERVAL_SECONDS
 
     return args
 
@@ -196,7 +205,7 @@ def main():
 
     numeric_level = getattr(logging, args_dict['log_level'], None)
     logging.basicConfig(format=LOGFORMAT)
-    logger.setLevel(numeric_level)
+    logging.getLogger('sparksteps').setLevel(numeric_level)
 
     client = boto3.client('emr', region_name=args_dict['aws_region'])
     s3 = boto3.resource('s3')
@@ -227,4 +236,12 @@ def main():
         step_ids = json.dumps(response['StepIds'])
     except KeyError:
         step_ids = 'Invalid response'
+        args_dict['wait'] = False
     logger.info("Step IDs: %s", step_ids)
+
+    sleep_interval = args_dict.get('wait')
+    if sleep_interval:
+        last_step_id = response['StepIds'][-1]
+        logger.info('Polling until step {last_step} is complete using a sleep interval of {interval} seconds...'
+                    .format(last_step=last_step_id, interval=sleep_interval))
+        wait_for_step_complete(client, cluster_id, last_step_id, sleep_interval_s=int(sleep_interval))
