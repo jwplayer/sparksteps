@@ -31,7 +31,7 @@ def zip_to_s3(s3_resource, dirpath, bucket, key):
 
 
 def parse_s3_path(s3_path):
-    """Returns bucket, path, and filename of an S3 path"""
+    """Return bucket, path, and filename of an S3 path"""
     parsed = urlparse(s3_path, allow_fragments=False)
     bucket = parsed.netloc
     path, filename = parsed.path.rsplit('/', 1)
