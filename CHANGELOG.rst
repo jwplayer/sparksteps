@@ -6,6 +6,12 @@ Changelog
 Releases
 --------
 
+v2.2.0 (2019-09-XX)
+~~~~~~~~~~~~~~~~~~~
+
+* Add option `--service-role` to configure EMR service role beyond the default `EMR_DefaultRole`.
+
+
 v2.1.0 (2019-08-27)
 ~~~~~~~~~~~~~~~~~~~
 

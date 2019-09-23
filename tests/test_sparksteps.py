@@ -25,6 +25,7 @@ def test_emr_cluster_config():
     config = emr_config('emr-5.2.0',
                         instance_type_master='m4.large',
                         jobflow_role='MyCustomRole',
+                        service_role='MyServiceRole',
                         keep_alive=False,
                         instance_type_core='m4.2xlarge',
                         instance_type_task='m4.2xlarge',
@@ -57,9 +58,9 @@ def test_emr_cluster_config():
                       'Applications': [{'Name': 'Hadoop'}, {'Name': 'Hive'}, {'Name': 'Spark'}],
                       'Name': 'Test SparkSteps',
                       'JobFlowRole': 'MyCustomRole',
+                      'ServiceRole': 'MyServiceRole',
                       'ReleaseLabel': 'emr-5.2.0',
                       'VisibleToAllUsers': True,
-                      'ServiceRole': 'EMR_DefaultRole',
                       'Configurations': [{'Classification': 'spark',
                                           'Properties': {'maximizeResourceAllocation': 'true'}}]
                       }
