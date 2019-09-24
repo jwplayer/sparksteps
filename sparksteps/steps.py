@@ -3,6 +3,7 @@
 import os
 import tempfile
 import zipfile
+from urllib.parse import urlparse
 
 REMOTE_DIR = '/home/hadoop/'
 
@@ -27,6 +28,15 @@ def zip_to_s3(s3_resource, dirpath, bucket, key):
         tmp.seek(0)  # Reset file pointer
         response = s3_resource.Bucket(bucket).put_object(Key=key, Body=tmp)
     return response
+
+
+def parse_s3_path(s3_path):
+    """Return bucket, path, and filename of an S3 path"""
+    parsed = urlparse(s3_path, allow_fragments=False)
+    bucket = parsed.netloc
+    path, filename = parsed.path.rsplit('/', 1)
+    path = path[1:] if path.startswith('/') else path
+    return bucket, path, filename
 
 
 class CmdStep(object):
@@ -68,7 +78,7 @@ class CopyStep(CmdStep):
 
     @property
     def key(self):
-        return os.path.join(self.path, 'sources/', self.filename)
+        return os.path.join(self.path, self.filename)
 
     @property
     def s3_uri(self):
@@ -151,17 +161,33 @@ class S3DistCp(CmdStep):
         return ['s3-dist-cp'] + self.s3_dist_cp
 
 
-def upload_steps(s3_resource, bucket, bucket_path, src_path):
-    """Upload files to S3 and get steps."""
+def get_download_steps(s3_resource, bucket, bucket_path, src_path):
+    """
+    Return list of step instances necessary to download file/directory resources onto the EMR master node.
+    May upload local files and directories to S3 to make them available to EMR.
+    """
     steps = []
     basename = get_basename(src_path)
-    if os.path.isdir(src_path):  # zip directory
-        copy_step = CopyStep(bucket, bucket_path, basename + '.zip')
-        zip_to_s3(s3_resource, src_path, bucket, key=copy_step.key)
+
+    # Location where files will be copied to be made accessible by EMR
+    default_dest_path = os.path.join(bucket_path, 'sources')
+
+    if src_path.startswith('s3://'):
+        # S3 file, simply add the Copy EMR step,
+        # no intermediate S3 file is necessary as it's already on S3
+        steps.append(CopyStep(*parse_s3_path(src_path)))
+    elif os.path.isdir(src_path):
+        # Directory, will zip and push to S3 first before adding EMR copy/unzip step
+        basename = basename + '.zip'
+        dest_path = os.path.join(default_dest_path, basename)
+        zip_to_s3(s3_resource, src_path, bucket, key=dest_path)
+        copy_step = CopyStep(bucket, default_dest_path, basename)
         steps.extend([copy_step, UnzipStep(src_path)])
     elif os.path.isfile(src_path):
-        copy_step = CopyStep(bucket, bucket_path, basename)
-        s3_resource.meta.client.upload_file(src_path, bucket, copy_step.key)
+        # File, upload to S3 and add copy step
+        dest_path = os.path.join(default_dest_path, basename)
+        s3_resource.meta.client.upload_file(src_path, bucket, dest_path)
+        copy_step = CopyStep(bucket, default_dest_path, basename)
         steps.append(copy_step)
     else:
         raise FileNotFoundError(
@@ -177,7 +203,7 @@ def setup_steps(s3, bucket, bucket_path, app_path, submit_args=None, app_args=No
     paths.append(app_path)
 
     for src_path in paths:
-        cmd_steps.extend(upload_steps(s3, bucket, bucket_path, src_path))
+        cmd_steps.extend(get_download_steps(s3, bucket, bucket_path, src_path))
 
     cmd_steps.append(SparkStep(app_path, submit_args, app_args))
 
