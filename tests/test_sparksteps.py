@@ -362,7 +362,7 @@ def test_setup_steps_with_bucket_path():
                          EPISODES_APP,
                          submit_args="--jars /home/hadoop/dir/test.jar".split(),
                          app_args="--input /home/hadoop/episodes.avro".split(),
-                         uploads=[LIB_DIR, EPISODES_AVRO])
+                         uploads=[LIB_DIR, EPISODES_AVRO, 's3://custom-bucket/custom/path/s3_file.py'])
              )
     assert steps == [
         {'HadoopJarStep': {'Jar': 'command-runner.jar',
@@ -382,6 +382,11 @@ def test_setup_steps_with_bucket_path():
                                     '/home/hadoop/']},
          'ActionOnFailure': 'CANCEL_AND_WAIT',
          'Name': 'Copy episodes.avro'},
+        {'HadoopJarStep': {'Jar': 'command-runner.jar',
+                           'Args': ['aws', 's3', 'cp',
+                                    's3://custom-bucket/custom/path/s3_file.py',
+                                    '/home/hadoop/']},
+         'ActionOnFailure': 'CANCEL_AND_WAIT', 'Name': 'Copy s3_file.py'},
         {'HadoopJarStep': {'Jar': 'command-runner.jar',
                            'Args': ['aws', 's3', 'cp',
                                     's3://sparksteps-test/custom/path/prefix/sources/episodes.py',
