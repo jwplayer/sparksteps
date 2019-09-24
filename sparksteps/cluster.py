@@ -8,6 +8,7 @@ import datetime
 from sparksteps import steps
 
 DEFAULT_JOBFLOW_ROLE = 'EMR_EC2_DefaultRole'
+DEFAULT_SERVICE_ROLE = 'EMR_DefaultRole'
 DEFAULT_APP_LIST = ['Hadoop', 'Spark']
 
 logger = logging.getLogger(__name__)
@@ -86,7 +87,7 @@ def emr_config(release_label, keep_alive=False, **kw):
         Applications=parse_apps(kw.get('app_list', DEFAULT_APP_LIST)),
         VisibleToAllUsers=True,
         JobFlowRole=kw.get('jobflow_role', DEFAULT_JOBFLOW_ROLE),
-        ServiceRole='EMR_DefaultRole',
+        ServiceRole=kw.get('service_role', DEFAULT_SERVICE_ROLE)
     )
 
     for instance_group in ('master', 'core', 'task'):

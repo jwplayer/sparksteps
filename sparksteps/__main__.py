@@ -27,6 +27,7 @@ Prompt parameters:
   ec2-subnet-id:                Amazon VPC subnet id
   help (-h):                    argparse help
   jobflow-role:                 Amazon EC2 instance profile name to use (Default: EMR_EC2_DefaultRole)
+  service-role:                 AWS IAM service role to use for EMR (Default: EMR_DefaultRole)
   keep-alive:                   whether to keep the EMR cluster alive when there are no steps
   log-level (-l):               logging level (default=INFO)
   instance-type-master:         instance type of of master host (default='m4.large')
@@ -70,7 +71,7 @@ import boto3
 from sparksteps import steps
 from sparksteps import cluster
 from sparksteps import pricing
-from sparksteps.cluster import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE
+from sparksteps.cluster import DEFAULT_APP_LIST, DEFAULT_JOBFLOW_ROLE, DEFAULT_SERVICE_ROLE
 from sparksteps.poll import wait_for_step_complete
 
 logger = logging.getLogger(__name__)
@@ -96,6 +97,7 @@ def create_parser():
     parser.add_argument('--ec2-key')
     parser.add_argument('--ec2-subnet-id')
     parser.add_argument('--jobflow-role', default=DEFAULT_JOBFLOW_ROLE)
+    parser.add_argument('--service-role', default=DEFAULT_SERVICE_ROLE)
     parser.add_argument('--keep-alive', action='store_true')
     parser.add_argument('--log-level', '-l', type=str.upper, default='INFO')
     parser.add_argument('--name')

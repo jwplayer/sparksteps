@@ -50,6 +50,7 @@ CLI Options
       ec2-subnet-id:                Amazon VPC subnet id
       help (-h):                    argparse help
       jobflow-role:                 Amazon EC2 instance profile name to use (Default: EMR_EC2_DefaultRole)
+      service-role:                 AWS IAM service role to use for EMR (Default: EMR_DefaultRole)
       keep-alive:                   whether to keep the EMR cluster alive when there are no steps
       log-level (-l):               logging level (default=INFO)
       instance-type-master:         instance type of of master host (default='m4.large')

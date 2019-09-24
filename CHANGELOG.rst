@@ -10,6 +10,7 @@ v2.2.0 (2019-09-19)
 ~~~~~~~~~~~~~~~~~~~
 
 * Support S3 paths in the `uploads` CLI option. A copy step will be added to the EMR cluster which will copy into /home/hadoop from the provided remote path.
+* Add option `--service-role` to configure EMR service role beyond the default `EMR_DefaultRole`.
 
 
 v2.1.0 (2019-08-27)
