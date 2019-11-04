@@ -21,13 +21,16 @@ EC2_PRICE_FILTER_TEMPLATE = '''
     {{"Field": "preInstalledSw", "Value": "NA", "Type": "TERM_MATCH"}},
     {{"Field": "instanceType", "Value": "{instance_type}", "Type": "TERM_MATCH"}},
     {{"Field": "location", "Value": "{region}", "Type": "TERM_MATCH"}},
-    {{"Field": "licenseModel", "Value": "No License required", "Type": "TERM_MATCH"}}
+    {{"Field": "licenseModel", "Value": "No License required", "Type": "TERM_MATCH"}},
+    {{"Field": "usagetype", "Value": "BoxUsage:{instance_type}", "Type": "TERM_MATCH"}}
 ]
 '''
 
 
 def get_demand_price(pricing_client, instance_type, region='US East (N. Virginia)', operating_system='Linux'):
-    """Retrieves the on-demand price for a particular EC2 instance type in the specified region.
+    """
+    Retrieves the on-demand price for a particular EC2 instance type in the specified region.
+    This function does not take reserved instance pricing into account.
 
     Args:
         pricing_client: Boto3 Pricing client.
