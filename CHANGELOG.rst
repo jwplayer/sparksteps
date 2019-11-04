@@ -6,6 +6,12 @@ Changelog
 Releases
 --------
 
+v2.2.1 (2019-11-04)
+~~~~~~~~~~~~~~~~~~~
+
+* Fix `get_demand_price` returning 0.00 for various instance types.
+
+
 v2.2.0 (2019-09-19)
 ~~~~~~~~~~~~~~~~~~~
 
