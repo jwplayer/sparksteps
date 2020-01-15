@@ -31,7 +31,7 @@ CLI Options
       app-list:                     Space delimited list of applications to be installed on the EMR cluster (Default: Hadoop Spark)
       aws-region:                   AWS region name
       bid-price:                    specify bid price for task nodes
-      bootstrap-action:             include a bootstrap script (s3 path)
+      bootstrap-script:             include a bootstrap script (s3 path)
       cluster-id:                   job flow id of existing cluster to submit to
       debug:                        allow debugging of cluster
       defaults:                     cluster configurations of the form "<classification1> key1=val1 key2=val2 ..."
