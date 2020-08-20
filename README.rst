@@ -100,14 +100,14 @@ Run Spark Job on Existing Cluster
 You can use the option ``--cluster-id`` to specify a cluster to upload
 and run the Spark job. This is especially helpful for debugging.
 
-Dynamic Pricing (alpha)
+Dynamic Pricing
 -----------------------
 
 Use CLI option ``--dynamic-pricing-<instance-type>`` to allow sparksteps to dynamically
 determine the best bid price for EMR instances within a certain instance group.
 
 Currently the algorithm looks back at spot history over the last 12
-hours and calculates ``min(50% * on_demand_price, max_spot_price)`` to
+hours and calculates ``min(0.8 * on_demand_price, 1.2 * max_spot_price)`` to
 determine bid price. That said, if the current spot price is over 80% of
 the on-demand cost, then on-demand instances are used to be
 conservative.
