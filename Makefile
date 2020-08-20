@@ -3,7 +3,8 @@
 help:
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-test - remove Python file artifacts"
-	@echo "build - build so file from pyx"
+	@echo "clean-eggs - remove cached eggs"
+	@echo "build - build package"
 	@echo "lint - check style with flake8"
 	@echo "test - run tests quickly with the default Python"
 	@echo "test-all - run tests on every Python version with tox"
@@ -11,7 +12,7 @@ help:
 	@echo "release - package and upload a release"
 	@echo "dist - package"
 
-clean: clean-build clean-test
+clean: clean-build clean-test clean-eggs
 	rm -rf htmlcov/
 
 clean-build:
@@ -23,6 +24,14 @@ clean-build:
 clean-test:
 	rm -rf __pycache__/
 	rm -rf .pytest_cache/
+
+.PHONY: clean-eggs
+clean-eggs:
+	rm -rf .eggs/
+
+.PHONY: build
+build: clean-build clean-eggs
+	python3 setup.py build_ext --inplace
 
 install: clean-build
 	python3 setup.py install
