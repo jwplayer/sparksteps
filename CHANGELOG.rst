@@ -6,7 +6,7 @@ Changelog
 Releases
 --------
 
-v2.2.2 (2020-08-20)
+v3.0.0 (2020-08-20)
 ~~~~~~~~~~~~~~~~~~~
 
 * Fix `determine_best_price` returning a spot price that would be below the current spot price in some conditions.
