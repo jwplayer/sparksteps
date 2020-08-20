@@ -45,9 +45,9 @@ setup(
         Intended Audience :: Developers
         License :: OSI Approved :: Apache Software License
         Environment :: Console
-        Programming Language :: Python :: 3.5
         Programming Language :: Python :: 3.6
         Programming Language :: Python :: 3.7
         Programming Language :: Python :: 3.8
         """).strip().splitlines(),
+    python_requires='>=3.6'
 )

@@ -128,46 +128,48 @@ def test_emr_cluster_config_with_defaults():
                         defaults=['spark-defaults', 'spark.speculation=false',
                                   'yarn-site', 'yarn.nodemanager.vmem-check-enabled=true'])
     print(config['Configurations'])
-    assert config == {'Instances':
-                          {'InstanceGroups': [{'InstanceCount': 1,  # NOQA: E127
-                                               'InstanceRole': 'MASTER',
-                                               'InstanceType': 'm4.large',
-                                               'Market': 'ON_DEMAND',
-                                               'Name': 'Master Node'},
-                                              {'InstanceCount': 1,
-                                               'InstanceRole': 'CORE',
-                                               'InstanceType': 'm4.2xlarge',
-                                               'Market': 'ON_DEMAND',
-                                               'Name': 'Core Nodes'},
-                                              {'BidPrice': '0.1',
-                                               'InstanceCount': 1,
-                                               'InstanceRole': 'TASK',
-                                               'InstanceType': 'm4.2xlarge',
-                                               'Market': 'SPOT',
-                                               'Name': 'Task Nodes'}],
-                           'KeepJobFlowAliveWhenNoSteps': False,
-                           'TerminationProtected': False
-                           },
-                      'Applications': [{'Name': 'Hadoop'}, {'Name': 'Spark'}],
-                      'Configurations': [
-                          {
-                              'Classification': 'spark-defaults',
-                              'Properties': {
-                                  'spark.speculation': 'false'
-                              }
-                          },
-                          {
-                              'Classification': 'yarn-site',
-                              'Properties': {
-                                  'yarn.nodemanager.vmem-check-enabled': 'true'
-                              }
-                          }
-                      ],
-                      'Name': 'Test SparkSteps',
-                      'JobFlowRole': 'EMR_EC2_DefaultRole',
-                      'ReleaseLabel': 'emr-5.2.0',
-                      'VisibleToAllUsers': True,
-                      'ServiceRole': 'EMR_DefaultRole'}
+    assert config == {
+        'Instances': {
+            'InstanceGroups': [{'InstanceCount': 1,  # NOQA: E127
+                                'InstanceRole': 'MASTER',
+                                'InstanceType': 'm4.large',
+                                'Market': 'ON_DEMAND',
+                                'Name': 'Master Node'},
+                               {'InstanceCount': 1,
+                                'InstanceRole': 'CORE',
+                                'InstanceType': 'm4.2xlarge',
+                                'Market': 'ON_DEMAND',
+                                'Name': 'Core Nodes'},
+                               {'BidPrice': '0.1',
+                                'InstanceCount': 1,
+                                'InstanceRole': 'TASK',
+                                'InstanceType': 'm4.2xlarge',
+                                'Market': 'SPOT',
+                                'Name': 'Task Nodes'}],
+            'KeepJobFlowAliveWhenNoSteps': False,
+            'TerminationProtected': False
+        },
+        'Applications': [{'Name': 'Hadoop'}, {'Name': 'Spark'}],
+        'Configurations': [
+            {
+                'Classification': 'spark-defaults',
+                'Properties': {
+                    'spark.speculation': 'false'
+                }
+            },
+            {
+                'Classification': 'yarn-site',
+                'Properties': {
+                    'yarn.nodemanager.vmem-check-enabled': 'true'
+                }
+            }
+        ],
+        'Name': 'Test SparkSteps',
+        'JobFlowRole': 'EMR_EC2_DefaultRole',
+        'ReleaseLabel': 'emr-5.2.0',
+        'VisibleToAllUsers': True,
+        'ServiceRole': 'EMR_DefaultRole'
+    }
 
     client = boto3.client('emr', region_name=AWS_REGION_NAME)
     client.run_job_flow(**config)
@@ -251,14 +253,14 @@ def test_emr_ebs_storage():
                                                'Market': 'SPOT',
                                                'Name': 'Core Nodes',
                                                'EbsConfiguration': {
-                                               'EbsBlockDeviceConfigs': [{
-                                                    'VolumeSpecification': {
-                                                        'VolumeType': 'gp2',
-                                                        'SizeInGB': 100
-                                                    },
-                                                    'VolumesPerInstance': 2
-                                                }],
-                                                'EbsOptimized': False
+                                                   'EbsBlockDeviceConfigs': [{
+                                                       'VolumeSpecification': {
+                                                           'VolumeType': 'gp2',
+                                                           'SizeInGB': 100
+                                                       },
+                                                       'VolumesPerInstance': 2
+                                                   }],
+                                                   'EbsOptimized': False
                                                }},
                                               {'BidPrice': '0.1',
                                                'InstanceCount': 4,
@@ -267,14 +269,14 @@ def test_emr_ebs_storage():
                                                'Market': 'SPOT',
                                                'Name': 'Task Nodes',
                                                'EbsConfiguration': {
-                                               'EbsBlockDeviceConfigs': [{
-                                                    'VolumeSpecification': {
-                                                        'VolumeType': 'io1',
-                                                        'SizeInGB': 10
-                                                    },
-                                                    'VolumesPerInstance': 1
-                                                }],
-                                                'EbsOptimized': True
+                                                   'EbsBlockDeviceConfigs': [{
+                                                       'VolumeSpecification': {
+                                                           'VolumeType': 'io1',
+                                                           'SizeInGB': 10
+                                                       },
+                                                       'VolumesPerInstance': 1
+                                                   }],
+                                                   'EbsOptimized': True
                                                }}],
                            'KeepJobFlowAliveWhenNoSteps': False,
                            'TerminationProtected': False
