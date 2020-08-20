@@ -150,7 +150,7 @@ def parse_cli_args(parser, args=None):
     # Perform sanitization on any arguments
     if args['s3_path'] and args['s3_path'].startswith('/'):
         raise ValueError(
-            'Provided value for s3-path "{S3_PATH}" cannot have leading "/" character.'.format(args['s3_path']))
+            f"Provided value for s3-path \"{args['s3_path']}\" cannot have leading \"/\" character.")
 
     if args['wait'] is None:
         args['wait'] = DEFAULT_SLEEP_INTERVAL_SECONDS

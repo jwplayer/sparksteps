@@ -106,7 +106,9 @@ def determine_best_price(demand_price, aws_zone):
     """
     if aws_zone.current >= demand_price * SPOT_DEMAND_THRESHOLD_FACTOR:
         return demand_price, False
-    return min(2 * aws_zone.max, demand_price * 0.5), True
+    # We always bid higher than the maximum current spot price for a particular instance type
+    # in order to make it less likely that our clusters will be shutdown.
+    return min(1.2 * aws_zone.max, demand_price * SPOT_DEMAND_THRESHOLD_FACTOR), True
 
 
 def get_bid_price(ec2_client, pricing_client, instance_type):

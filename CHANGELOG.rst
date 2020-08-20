@@ -6,6 +6,13 @@ Changelog
 Releases
 --------
 
+v3.0.0 (2020-08-20)
+~~~~~~~~~~~~~~~~~~~
+
+* Fix `determine_best_price` returning a spot price that would be below the current spot price in some conditions.
+* Dropped support for Python 3.5.
+
+
 v2.2.1 (2019-11-04)
 ~~~~~~~~~~~~~~~~~~~
 
