@@ -171,10 +171,10 @@ def determine_prices(args, ec2, pricing_client):
         return args
 
     availability_zone = None
-    if 'ec2_subnet_id' in args and args['ec2_subnet_id']:
+    subnet_id = args.get('ec2_subnet_id')
+    if subnet_id:
         # We need to determine the AZ associated with the provided EC2 subnet ID
         # in order to look up spot prices in the correct region.
-        subnet_id = args['ec2_subnet_id']
         availability_zone = pricing.get_availability_zone(ec2, subnet_id)
         if not availability_zone:
             logger.info("Could not determine availability zone for subnet '%s'", subnet_id)

@@ -150,19 +150,20 @@ def get_bid_price(ec2_client, pricing_client, instance_type, availability_zone=N
     """
     history = get_spot_price_history(ec2_client, instance_type, SPOT_PRICE_LOOKBACK)
     by_zone = price_by_zone(history)
-    if availability_zone:
-        # Consider only the AZ in which we expect to launch instances.
-        zone_profile = get_zone_profile({availability_zone: by_zone.get(availability_zone, [])})
-    else:
-        # Consider all AZ's.
-        zone_profile = get_zone_profile(by_zone)
-    if not zone_profile:
+    if availability_zone is not None and availability_zone not in by_zone:
         # Unable to determine the spot price because no information was available for the
         # desired AZ.
         logger.info(
             "Unable to determine the spot price for %s instances in %s because no "
             "zone information was available.", instance_type, availability_zone)
-        return get_demand_price(pricing_client, instance_type)
+        return round(get_demand_price(pricing_client, instance_type), 2), False
+
+    if availability_zone:
+        # Consider only the AZ in which we expect to launch instances.
+        zone_profile = get_zone_profile({availability_zone: by_zone[availability_zone]})
+    else:
+        # Consider all AZ's.
+        zone_profile = get_zone_profile(by_zone)
     best_zone = min(zone_profile, key=lambda x: x.max)
     demand_price = get_demand_price(pricing_client, instance_type)
     bid_price, is_spot = determine_best_price(demand_price, best_zone)
