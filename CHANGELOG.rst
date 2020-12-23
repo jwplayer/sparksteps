@@ -6,6 +6,11 @@ Changelog
 Releases
 --------
 
+v3.0.1 (2020-12-23)
+~~~~~~~~~~~~~~~~~~~
+
+* Fixed an issue where `get_bid_price` would always base the instance bid price on the zone with the lowest current instance price, even though the cluster may not be launched in that AZ.
+
 v3.0.0 (2020-08-20)
 ~~~~~~~~~~~~~~~~~~~
 
