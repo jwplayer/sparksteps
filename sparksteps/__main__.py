@@ -170,6 +170,15 @@ def determine_prices(args, ec2, pricing_client):
     if not any([x in args for x in pricing_properties]):
         return args
 
+    availability_zone = None
+    subnet_id = args.get('ec2_subnet_id')
+    if subnet_id:
+        # We need to determine the AZ associated with the provided EC2 subnet ID
+        # in order to look up spot prices in the correct region.
+        availability_zone = pricing.get_availability_zone(ec2, subnet_id)
+        if not availability_zone:
+            logger.info("Could not determine availability zone for subnet '%s'", subnet_id)
+
     # Mutate a copy of args.
     args = args.copy()
 
@@ -186,7 +195,7 @@ def determine_prices(args, ec2, pricing_client):
             instance_group = price_property.replace('dynamic_pricing_', '')
             # TODO (rikheijdens): optimize by caching instance prices
             # between instance groups?
-            bid_price, is_spot = pricing.get_bid_price(ec2, pricing_client, instance_type)
+            bid_price, is_spot = pricing.get_bid_price(ec2, pricing_client, instance_type, availability_zone)
             if is_spot:
                 logger.info("Using spot pricing with a bid price of $%.2f"
                             " for %s instances in the %s instance group.",

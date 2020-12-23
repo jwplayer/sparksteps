@@ -51,6 +51,26 @@ def get_demand_price(pricing_client, instance_type, region='US East (N. Virginia
     return float(on_demand[index_1]['priceDimensions'][index_2]['pricePerUnit']['USD'])
 
 
+def get_availability_zone(ec2_client, subnet_id):
+    """
+    Returns the availability zone associated with the provided `subnet_id`.
+
+    Args:
+        ec2_client: Boto3 EC2 client.
+        subnet_id (str): The identifier of the subnet to look the associated AZ up for.
+
+    Returns:
+        AZ: The AvailabilityZone of the associated subnet.
+    """
+    response = ec2_client.describe_subnets(SubnetIds=[subnet_id])
+    subnets = response.get('Subnets', [])
+    for s in subnets:
+        if s['SubnetId'] == subnet_id:
+            return s['AvailabilityZone']
+    # Could not determine the associated AZ.
+    return None
+
+
 def get_spot_price_history(ec2_client, instance_type, lookback=1):
     """Return dictionary of price history by availability zone.
 
@@ -111,15 +131,17 @@ def determine_best_price(demand_price, aws_zone):
     return min(1.2 * aws_zone.max, demand_price * SPOT_DEMAND_THRESHOLD_FACTOR), True
 
 
-def get_bid_price(ec2_client, pricing_client, instance_type):
+def get_bid_price(ec2_client, pricing_client, instance_type, availability_zone=None):
     """Determine AWS bid price.
 
     Args:
-        client: boto3 client
+        ec2_client: boto3 EC2 client
         instance_type: EC2 instance type
+        availability_zone: The availability zone the instance should be launched in,
+         if not provided an AZ is automatically selected.
 
     Returns:
-        float: bid price, bool: is stop
+        float: bid price, bool: is_spot
 
     Examples:
         >>> import boto3
@@ -128,7 +150,20 @@ def get_bid_price(ec2_client, pricing_client, instance_type):
     """
     history = get_spot_price_history(ec2_client, instance_type, SPOT_PRICE_LOOKBACK)
     by_zone = price_by_zone(history)
-    zone_profile = get_zone_profile(by_zone)
+    if availability_zone is not None and availability_zone not in by_zone:
+        # Unable to determine the spot price because no information was available for the
+        # desired AZ.
+        logger.info(
+            "Unable to determine the spot price for %s instances in %s because no "
+            "zone information was available.", instance_type, availability_zone)
+        return round(get_demand_price(pricing_client, instance_type), 2), False
+
+    if availability_zone:
+        # Consider only the AZ in which we expect to launch instances.
+        zone_profile = get_zone_profile({availability_zone: by_zone[availability_zone]})
+    else:
+        # Consider all AZ's.
+        zone_profile = get_zone_profile(by_zone)
     best_zone = min(zone_profile, key=lambda x: x.max)
     demand_price = get_demand_price(pricing_client, instance_type)
     bid_price, is_spot = determine_best_price(demand_price, best_zone)
