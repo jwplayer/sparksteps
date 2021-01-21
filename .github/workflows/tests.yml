@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   test:
-    name: Test sparksteps on ${{ matrix.python_version }}
+    name: Test sparksteps on Python ${{ matrix.python_version }}
     strategy:
       matrix:
         python_version: [3.6, 3.7, 3.8]
@@ -17,5 +17,5 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python_version }}
-      - name: Run tests on ${{ matrix.python_version }}
+      - name: Run tests on Python ${{ matrix.python_version }}
         run: make test
