@@ -1,8 +1,8 @@
 Spark Steps
 ===========
 
-.. image:: https://travis-ci.org/jwplayer/sparksteps.svg?branch=master
-    :target: https://travis-ci.org/jwplayer/sparksteps
+.. image:: https://github.com/jwplayer/sparksteps/workflows/Tests/badge.svg?branch=master
+    :target: https://github.com/jwplayer/sparksteps/actions?query=workflow%3ATests+branch%3Amaster
     :alt: Build Status
 
 .. image:: https://readthedocs.org/projects/spark-steps/badge/?version=latest
