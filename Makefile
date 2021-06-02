@@ -42,8 +42,12 @@ install-all:
 lint:
 	pytest --flake8 sparksteps tests
 
-test:
-	python3 setup.py test
+test: install-all
+	pip install -U \
+		pytest \
+		pytest-flake8 \
+		moto
+	python3 -m pytest
 
 test-all:
 	tox

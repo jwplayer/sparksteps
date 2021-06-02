@@ -23,15 +23,8 @@ setup(
         'polling==0.3.0'
     ],
     setup_requires=[
-        'pytest-runner',
         'setuptools_scm',
         'sphinx_rtd_theme',
-    ],
-    tests_require=[
-        'pytest',
-        'pytest-flake8',
-        'moto',
-        'ecdsa<0.15'
     ],
     include_package_data=True,
     zip_safe=False,
